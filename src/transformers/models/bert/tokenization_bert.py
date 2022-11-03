@@ -238,23 +238,30 @@ class BertTokenizer(PreTrainedTokenizer):
     def get_vocab(self):
         return dict(self.vocab, **self.added_tokens_encoder)
 
-    def _tokenize(self, text):
-        split_tokens = []
-        if self.do_basic_tokenize:
-            for token in self.basic_tokenizer.tokenize(text, never_split=self.all_special_tokens):
+    # def _tokenize(self, text):
+    #     split_tokens = []
+    #     if self.do_basic_tokenize:
+    #         for token in self.basic_tokenizer.tokenize(text, never_split=self.all_special_tokens):
+    #
+    #             # If the token is part of the never_split set
+    #             if token in self.basic_tokenizer.never_split:
+    #                 split_tokens.append(token)
+    #             else:
+    #                 split_tokens += self.wordpiece_tokenizer.tokenize(token)
+    #     else:
+    #         split_tokens = self.wordpiece_tokenizer.tokenize(text)
+    #     return split_tokens
 
-                # If the token is part of the never_split set
-                if token in self.basic_tokenizer.never_split:
-                    split_tokens.append(token)
-                else:
-                    split_tokens += self.wordpiece_tokenizer.tokenize(token)
-        else:
-            split_tokens = self.wordpiece_tokenizer.tokenize(text)
-        return split_tokens
+    def _tokenize(self, text):
+        return PreTrainedTokenizer._tokenize(self, text)
 
     def _convert_token_to_id(self, token):
         """Converts a token (str) in an id using the vocab."""
-        return self.vocab.get(token, self.vocab.get(self.unk_token))
+        # return self.vocab.get(token, self.vocab.get(self.unk_token))
+        if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
+            return self.vocab.get(token, self.vocab.get(self.unk_token))
+        return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
+
 
     def _convert_id_to_token(self, index):
         """Converts an index (integer) in a token (str) using the vocab."""
