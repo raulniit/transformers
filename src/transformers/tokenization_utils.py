@@ -558,13 +558,13 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
 
         tekst = Text(text).tag_layer("morph_analysis")
         tokens = []
-        for i in range(len(tekst.lemma)):
-            tokens.append((tekst.lemma[i][0], tekst.form[i][0]))
+        for span in tekst.morph_analysis:
+            tokens.append((span["lemma"][0], span["form"][0]))
             # self.add_tokens(new_tokens = [tekst.lemma[i][0], tekst.form[i][0]])
-            if tekst.lemma[i][0] not in self.added_tokens_encoder.keys():
-                self.added_tokens_encoder[tekst.lemma[i][0]] = i
-            if tekst.form[i][0] not in self.added_tokens_encoder.keys():
-                self.added_tokens_encoder[tekst.form[i][0]] = len(tekst.lemma) + i
+            #if span["lemma"][0] not in self.added_tokens_encoder.keys():
+                #self.added_tokens_encoder[tekst.lemma[i][0]] = i
+            #if span["form"][0] not in self.added_tokens_encoder.keys():
+                #self.added_tokens_encoder[tekst.form[i][0]] = len(tekst.lemma) + i
         return tokens
 
     def convert_tokens_to_ids(self, tokens: Union[str, List[str]]) -> Union[int, List[int]]:
@@ -598,7 +598,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return self._convert_token_to_id(token)
 
     def _convert_token_to_id(self, token):
-        return (self.added_tokens_encoder[token[0]], self.added_tokens_encoder[token[1]])
+        return (self.added_tokens_encoder[token[0]], self.unk_token)
 
     def _encode_plus(
         self,

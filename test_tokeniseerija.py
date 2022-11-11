@@ -6,8 +6,8 @@ tokenizer2 = BertTokenizer("vocab.txt")
 
 input_tekst = "Maril on paha tuju, aga see on fine."
 
-print(tokenizer.tokenize(input_tekst))
-print(tokenizer(input_tekst))
+#print(tokenizer.tokenize(input_tekst))
+#print(tokenizer(input_tekst))
 # print(tokenizer.added_tokens_encoder)
 
 print()
