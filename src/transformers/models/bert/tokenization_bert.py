@@ -259,7 +259,7 @@ class BertTokenizer(PreTrainedTokenizer):
         """Converts a token (str) in an id using the vocab."""
         # return self.vocab.get(token, self.vocab.get(self.unk_token))
         if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
-            return self.vocab.get(token, self.vocab.get(self.unk_token))
+            return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab.get(token, self.vocab.get(self.unk_token)))
         return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
 
 

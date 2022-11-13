@@ -183,7 +183,8 @@ class BertEmbeddings(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.word_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
+        self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
+        self.form_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
         self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
 
@@ -228,7 +229,7 @@ class BertEmbeddings(nn.Module):
                 token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
 
         if inputs_embeds is None:
-            inputs_embeds = self.word_embeddings(input_ids)
+            inputs_embeds = torch.add(self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1]))
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
 
         embeddings = inputs_embeds + token_type_embeddings
@@ -889,10 +890,10 @@ class BertModel(BertPreTrainedModel):
         self.post_init()
 
     def get_input_embeddings(self):
-        return self.embeddings.word_embeddings
+        return (self.embeddings.lemma_embeddings, self.embeddings.form_embeddings)
 
-    def set_input_embeddings(self, value):
-        self.embeddings.word_embeddings = value
+    def set_input_embeddings(self, values):
+        self.embeddings.lemma_embeddings, self.embeddings.form_embeddings = values
 
     def _prune_heads(self, heads_to_prune):
         """
@@ -965,7 +966,7 @@ class BertModel(BertPreTrainedModel):
         else:
             raise ValueError("You have to specify either input_ids or inputs_embeds")
 
-        batch_size, seq_length = input_shape
+        batch_size, seq_length = input_shape[:-1]
         device = input_ids.device if input_ids is not None else inputs_embeds.device
 
         # past_key_values_length
