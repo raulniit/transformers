@@ -139,6 +139,7 @@ class BertConfig(PretrainedConfig):
     def __init__(
         self,
         vocab_size=30522,
+        vocab_size_form = 114,
         hidden_size=768,
         num_hidden_layers=12,
         num_attention_heads=12,
@@ -159,6 +160,7 @@ class BertConfig(PretrainedConfig):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
 
         self.vocab_size = vocab_size
+        self.vocab_size_form = vocab_size_form
         self.hidden_size = hidden_size
         self.num_hidden_layers = num_hidden_layers
         self.num_attention_heads = num_attention_heads

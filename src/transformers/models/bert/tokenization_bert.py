@@ -184,6 +184,7 @@ class BertTokenizer(PreTrainedTokenizer):
     def __init__(
         self,
         vocab_file,
+        vocab_file_form = None,
         do_lower_case=True,
         do_basic_tokenize=True,
         never_split=None,
@@ -216,6 +217,10 @@ class BertTokenizer(PreTrainedTokenizer):
                 " model use `tokenizer = BertTokenizer.from_pretrained(PRETRAINED_MODEL_NAME)`"
             )
         self.vocab = load_vocab(vocab_file)
+        if vocab_file_form is not None:
+            self.vocab_form = load_vocab(vocab_file_form)
+        else:
+            self.vocab_form = None
         self.ids_to_tokens = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab.items()])
         self.do_basic_tokenize = do_basic_tokenize
         if do_basic_tokenize:
@@ -235,8 +240,15 @@ class BertTokenizer(PreTrainedTokenizer):
     def vocab_size(self):
         return len(self.vocab)
 
+    @property
+    def vocab_size_form(self):
+        return len(self.vocab_form)
+
     def get_vocab(self):
         return dict(self.vocab, **self.added_tokens_encoder)
+
+    def get_vocab_form(self):
+        return dict(self.vocab_form, **self.added_tokens_encoder)
 
     # def _tokenize(self, text):
     #     split_tokens = []
@@ -258,10 +270,14 @@ class BertTokenizer(PreTrainedTokenizer):
     def _convert_token_to_id(self, token):
         """Converts a token (str) in an id using the vocab."""
         # return self.vocab.get(token, self.vocab.get(self.unk_token))
-        if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
-            return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab.get(token, self.vocab.get(self.unk_token)))
-        return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
-
+        if self.vocab_form is not None:
+            if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
+                return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab_form.get(token, self.vocab_form.get(self.unk_token)))
+            return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab_form.get(token[1], self.vocab_form.get(self.unk_token)))
+        else:
+            if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
+                return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab.get(token, self.vocab.get(self.unk_token)))
+            return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
 
     def _convert_id_to_token(self, index):
         """Converts an index (integer) in a token (str) using the vocab."""

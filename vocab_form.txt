@@ -1,0 +1,111 @@
+[PAD]
+[UNK]
+[CLS]
+[SEP]
+[MASK]
+?
+ab
+abl
+ad
+adt
+all
+el
+es
+g
+ill
+in
+kom
+n
+p
+pl
+sg
+ter
+tr
+sg ab
+sg abl
+sg ad
+sg adt
+sg all
+sg el
+sg es
+sg g
+sg ill
+sg in
+sg kom
+sg n
+sg p
+sg ter
+sg tr
+pl ab
+pl abl
+pl ad
+pl adt
+pl all
+pl el
+pl es
+pl g
+pl ill
+pl in
+pl kom
+pl n
+pl p
+pl ter
+pl tr
+b
+d
+da
+des
+ge
+gem
+gu
+ks
+ksid
+ksime
+ksin
+ksite
+ma
+maks
+mas
+mast
+mata
+me
+neg
+neg ge
+neg gem
+neg gu
+neg ks
+neg me
+neg nud
+neg nuks
+neg o
+neg vat
+neg tud
+nud
+nuks
+nuksid
+nuksime
+nuksin
+nuksite
+nuvat
+o
+s
+sid
+sime
+sin
+site
+ta
+tagu
+taks
+takse
+tama
+tav
+tavat
+te
+ti
+tud
+tuks
+tuvat
+v
+vad
+vat
+ 

@@ -555,11 +555,20 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
 
         Do NOT take care of added tokens.
         """
-
+        special_tokens = [special.strip("[]") for special in list(self.all_special_tokens)]
         tekst = Text(text).tag_layer("morph_analysis")
         tokens = []
-        for span in tekst.morph_analysis:
-            tokens.append((span["lemma"][0], span["form"][0]))
+        for i, span in enumerate(tekst.morph_analysis):
+            if span["text"][0] == "]":
+                if i - 2  > 0:
+                    special = tekst.morph_analysis[i-1]["text"][0]
+                    if special in special_tokens and tekst.morph_analysis[i-2]["text"][0] == "[":
+                        tokens = tokens[:(len(tokens)-2)]
+                        tokens.append(("[" + special + "]", "[" + special + "]"))
+            else:
+                tokens.append((span["lemma"][0], span["form"][0]))
+
+
             # self.add_tokens(new_tokens = [tekst.lemma[i][0], tekst.form[i][0]])
             #if span["lemma"][0] not in self.added_tokens_encoder.keys():
                 #self.added_tokens_encoder[tekst.lemma[i][0]] = i

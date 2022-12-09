@@ -2389,7 +2389,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                     max_length = self.model_max_length
 
         # Test if we have a padding token
-        if padding_strategy != PaddingStrategy.DO_NOT_PAD and (not self.pad_token or self.pad_token_id < 0):
+        if padding_strategy != PaddingStrategy.DO_NOT_PAD and (not self.pad_token or self.pad_token_id[0] < 0 and self.pad_token_id[1] < 0):
             raise ValueError(
                 "Asking to pad but the tokenizer does not have a padding token. "
                 "Please select a token to use as `pad_token` `(tokenizer.pad_token = tokenizer.eos_token e.g.)` "
@@ -3342,7 +3342,9 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                     )
                 if "special_tokens_mask" in encoded_inputs:
                     encoded_inputs["special_tokens_mask"] = encoded_inputs["special_tokens_mask"] + [1] * difference
+
                 encoded_inputs[self.model_input_names[0]] = required_input + [self.pad_token_id] * difference
+
             elif self.padding_side == "left":
                 if return_attention_mask:
                     encoded_inputs["attention_mask"] = [0] * difference + encoded_inputs["attention_mask"]
