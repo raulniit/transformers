@@ -20,6 +20,7 @@ import bisect
 import itertools
 import re
 import unicodedata
+import random
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Tuple, Union, overload
 
@@ -566,7 +567,8 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                         tokens = tokens[:(len(tokens)-2)]
                         tokens.append(("[" + special + "]", "[" + special + "]"))
             else:
-                tokens.append((span["lemma"][0], span["form"][0]))
+                ind = random.randint(0, len(span["lemma"])-1)
+                tokens.append((span["lemma"][ind], span["form"][ind]))
 
 
             # self.add_tokens(new_tokens = [tekst.lemma[i][0], tekst.form[i][0]])
