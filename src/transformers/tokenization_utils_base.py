@@ -3409,6 +3409,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
     def decode(
         self,
         token_ids: Union[int, List[int], "np.ndarray", "torch.Tensor", "tf.Tensor"],
+        return_form: bool = False,
         skip_special_tokens: bool = False,
         clean_up_tokenization_spaces: bool = True,
         **kwargs
@@ -3437,6 +3438,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
 
         return self._decode(
             token_ids=token_ids,
+            return_form = return_form,
             skip_special_tokens=skip_special_tokens,
             clean_up_tokenization_spaces=clean_up_tokenization_spaces,
             **kwargs,

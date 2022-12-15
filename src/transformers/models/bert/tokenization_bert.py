@@ -222,6 +222,7 @@ class BertTokenizer(PreTrainedTokenizer):
         else:
             self.vocab_form = None
         self.ids_to_tokens = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab.items()])
+        self.ids_to_tokens_form = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab_form.items()])
         self.do_basic_tokenize = do_basic_tokenize
         if do_basic_tokenize:
             self.basic_tokenizer = BasicTokenizer(
@@ -279,8 +280,10 @@ class BertTokenizer(PreTrainedTokenizer):
                 return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab.get(token, self.vocab.get(self.unk_token)))
             return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
 
-    def _convert_id_to_token(self, index):
+    def _convert_id_to_token(self, index, return_form: bool = False):
         """Converts an index (integer) in a token (str) using the vocab."""
+        if return_form:
+            return self.ids_to_tokens_form.get(index, self.unk_token)
         return self.ids_to_tokens.get(index, self.unk_token)
 
     def convert_tokens_to_string(self, tokens):

@@ -16,7 +16,7 @@ input_tekst = "Maril on paha [MASK], aga see on [MASK] ja ta elab Tallinnas."
 #print()
 print(tokenizer2.tokenize(input_tekst))
 print(tokenizer2(input_tekst))
-
+print(tokenizer2.decode(25, return_form = True))
 config = BertConfig()
 embedding = BertEmbeddings(config)
 #model = BertModel(config).from_pretrained("tartuNLP/EstBERT")

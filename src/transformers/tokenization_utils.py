@@ -902,7 +902,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         ...
 
     def convert_ids_to_tokens(
-        self, ids: Union[int, List[int]], skip_special_tokens: bool = False
+        self, ids: Union[int, List[int]], skip_special_tokens: bool = False, return_form: bool = False
     ) -> Union[str, List[str]]:
         """
         Converts a single index or a sequence of indices in a token or a sequence of tokens, using the vocabulary and
@@ -921,7 +921,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             if ids in self.added_tokens_decoder:
                 return self.added_tokens_decoder[ids]
             else:
-                return self._convert_id_to_token(ids)
+                return self._convert_id_to_token(ids, return_form = return_form)
         tokens = []
         for index in ids:
             index = int(index)
@@ -933,7 +933,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 tokens.append(self._convert_id_to_token(index))
         return tokens
 
-    def _convert_id_to_token(self, index: int) -> str:
+    def _convert_id_to_token(self, index: int, return_form: bool = False) -> str:
         raise NotImplementedError
 
     def convert_tokens_to_string(self, tokens: List[str]) -> str:
@@ -942,6 +942,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     def _decode(
         self,
         token_ids: List[int],
+        return_form: bool = False,
         skip_special_tokens: bool = False,
         clean_up_tokenization_spaces: bool = True,
         spaces_between_special_tokens: bool = True,
@@ -949,7 +950,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     ) -> str:
         self._decode_use_source_tokenizer = kwargs.pop("use_source_tokenizer", False)
 
-        filtered_tokens = self.convert_ids_to_tokens(token_ids, skip_special_tokens=skip_special_tokens)
+        filtered_tokens = self.convert_ids_to_tokens(token_ids, skip_special_tokens=skip_special_tokens, return_form = return_form)
 
         # To avoid mixing byte-level and unicode for byte-level BPT
         # we need to build string separately for added tokens and byte-level tokens
