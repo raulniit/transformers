@@ -960,7 +960,6 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 index = int(input_tuple[1])
             else:
                 index = int(input_tuple[0])
-            print(input_tuple)
             if skip_special_tokens and input_tuple in self.all_special_ids:
                 continue
             if index in self.added_tokens_decoder:
