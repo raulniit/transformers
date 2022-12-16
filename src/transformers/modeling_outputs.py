@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import torch
+import os
 
 from .utils import ModelOutput
 
@@ -40,7 +41,7 @@ class BaseModelOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutput")
     last_hidden_state: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     attentions: Optional[Tuple[torch.FloatTensor]] = None
@@ -60,7 +61,7 @@ class BaseModelOutputWithNoAttention(ModelOutput):
 
             Hidden-states of the model at the output of each layer plus the optional initial embedding outputs.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutputWithNoAttention")
     last_hidden_state: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
 
@@ -90,7 +91,7 @@ class BaseModelOutputWithPooling(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutputWithPooling")
     last_hidden_state: torch.FloatTensor = None
     pooler_output: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -113,7 +114,7 @@ class BaseModelOutputWithPoolingAndNoAttention(ModelOutput):
 
             Hidden-states of the model at the output of each layer plus the optional initial embedding outputs.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutputWithPoolingAndNoAttention")
     last_hidden_state: torch.FloatTensor = None
     pooler_output: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -151,7 +152,7 @@ class BaseModelOutputWithPast(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutputWithPoolingAndNoAttention")
     last_hidden_state: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -184,7 +185,7 @@ class BaseModelOutputWithCrossAttentions(ModelOutput):
             Attentions weights of the decoder's cross-attention layer, after the attention softmax, used to compute the
             weighted average in the cross-attention heads.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutputWithCrossAttentions")
     last_hidden_state: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     attentions: Optional[Tuple[torch.FloatTensor]] = None
@@ -231,7 +232,7 @@ class BaseModelOutputWithPoolingAndCrossAttentions(ModelOutput):
             `config.is_encoder_decoder=True` in the cross-attention blocks) that can be used (see `past_key_values`
             input) to speed up sequential decoding.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutputWithPoolingAndCrossAttentions")
     last_hidden_state: torch.FloatTensor = None
     pooler_output: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -278,7 +279,7 @@ class BaseModelOutputWithPastAndCrossAttentions(ModelOutput):
             Attentions weights of the decoder's cross-attention layer, after the attention softmax, used to compute the
             weighted average in the cross-attention heads.
     """
-
+    print(os.path.abspath(__file__), "BaseModelOutputWithPastAndCrossAttentions")
     last_hidden_state: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -336,7 +337,7 @@ class Seq2SeqModelOutput(ModelOutput):
             Attentions weights of the encoder, after the attention softmax, used to compute the weighted average in the
             self-attention heads.
     """
-
+    print(os.path.abspath(__file__), "Seq2SeqModelOutput")
     last_hidden_state: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
     decoder_hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -369,7 +370,7 @@ class CausalLMOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "CausalLMOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -404,7 +405,7 @@ class CausalLMOutputWithPast(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "CausalLMOutputWithPast")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
@@ -447,7 +448,7 @@ class CausalLMOutputWithCrossAttentions(ModelOutput):
             Contains pre-computed hidden-states (key and values in the attention blocks) that can be used (see
             `past_key_values` input) to speed up sequential decoding.
     """
-
+    print(os.path.abspath(__file__), "CausalLMOutputWithCrossAttentions")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
@@ -484,7 +485,7 @@ class SequenceClassifierOutputWithPast(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "SequenceClassifierOutputWithPast")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
@@ -514,7 +515,7 @@ class MaskedLMOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "MaskedLMOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -569,7 +570,7 @@ class Seq2SeqLMOutput(ModelOutput):
             Attentions weights of the encoder, after the attention softmax, used to compute the weighted average in the
             self-attention heads.
     """
-
+    print(os.path.abspath(__file__), "Seq2SeqLMOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
@@ -604,7 +605,7 @@ class NextSentencePredictorOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "NextSentencePredictorOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -633,7 +634,7 @@ class SequenceClassifierOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "SequenceClassifierOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -688,7 +689,7 @@ class Seq2SeqSequenceClassifierOutput(ModelOutput):
             Attentions weights of the encoder, after the attention softmax, used to compute the weighted average in the
             self-attention heads.
     """
-
+    print(os.path.abspath(__file__), "Seq2SeqSequenceClassifierOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
@@ -724,7 +725,7 @@ class MultipleChoiceModelOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "MultipleChoiceModelOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -753,7 +754,7 @@ class TokenClassifierOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "TokenClassifierOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -784,7 +785,7 @@ class QuestionAnsweringModelOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "QuestionAnsweringModelOutput")
     loss: Optional[torch.FloatTensor] = None
     start_logits: torch.FloatTensor = None
     end_logits: torch.FloatTensor = None
@@ -842,7 +843,7 @@ class Seq2SeqQuestionAnsweringModelOutput(ModelOutput):
             Attentions weights of the encoder, after the attention softmax, used to compute the weighted average in the
             self-attention heads.
     """
-
+    print(os.path.abspath(__file__), "Seq2SeqQuestionAnsweringModelOutput")
     loss: Optional[torch.FloatTensor] = None
     start_logits: torch.FloatTensor = None
     end_logits: torch.FloatTensor = None
@@ -886,7 +887,7 @@ class SemanticSegmenterOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "SemanticSegmenterOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -914,7 +915,7 @@ class ImageClassifierOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "ImageClassifierOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -936,7 +937,7 @@ class ImageClassifierOutputWithNoAttention(ModelOutput):
             one for the output of each stage) of shape `(batch_size, num_channels, height, width)`. Hidden-states (also
             called feature maps) of the model at the output of each stage.
     """
-
+    print(os.path.abspath(__file__), "ImageClassifierOutputWithNoAttention")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -965,7 +966,7 @@ class DepthEstimatorOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "DepthEstimatorOutput")
     loss: Optional[torch.FloatTensor] = None
     predicted_depth: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -994,7 +995,7 @@ class Wav2Vec2BaseModelOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "Wav2Vec2BaseModelOutput")
     last_hidden_state: torch.FloatTensor = None
     extract_features: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
@@ -1025,7 +1026,7 @@ class XVectorOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "XVectorOutput")
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     embeddings: torch.FloatTensor = None

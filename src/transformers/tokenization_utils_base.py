@@ -127,7 +127,7 @@ class TruncationStrategy(ExplicitEnum):
     Possible values for the `truncation` argument in [`PreTrainedTokenizerBase.__call__`]. Useful for tab-completion in
     an IDE.
     """
-
+    print(os.path.abspath(__file__), "TruncationStrategy")
     ONLY_FIRST = "only_first"
     ONLY_SECOND = "only_second"
     LONGEST_FIRST = "longest_first"
@@ -142,7 +142,7 @@ class CharSpan(NamedTuple):
         start (`int`): Index of the first character in the original string.
         end (`int`): Index of the character following the last character in the original string.
     """
-
+    print(os.path.abspath(__file__), "CharSpan")
     start: int
     end: int
 
@@ -155,7 +155,7 @@ class TokenSpan(NamedTuple):
         start (`int`): Index of the first token in the span.
         end (`int`): Index of the token following the last token in the span.
     """
-
+    print(os.path.abspath(__file__), "TokenSpan")
     start: int
     end: int
 
@@ -186,7 +186,7 @@ class BatchEncoding(UserDict):
             You can give a tensor_type here to convert the lists of integers in PyTorch/TensorFlow/Numpy Tensors at
             initialization.
     """
-
+    print(os.path.abspath(__file__), "BatchEncoding")
     def __init__(
         self,
         data: Optional[Dict[str, Any]] = None,
@@ -195,6 +195,7 @@ class BatchEncoding(UserDict):
         prepend_batch_axis: bool = False,
         n_sequences: Optional[int] = None,
     ):
+        print(os.path.abspath(__file__), "BatchEncoding __init__")
         super().__init__(data)
 
         if isinstance(encoding, EncodingFast):
@@ -216,6 +217,7 @@ class BatchEncoding(UserDict):
         [`BatchEncoding`]. Currently can be one of `None` (unknown), `1` (a single sentence) or `2` (a pair of
         sentences)
         """
+        print(os.path.abspath(__file__), "BatchEncoding n_sequences")
         return self._n_sequences
 
     @property
@@ -224,6 +226,7 @@ class BatchEncoding(UserDict):
         `bool`: Indicate whether this [`BatchEncoding`] was generated from the result of a [`PreTrainedTokenizerFast`]
         or not.
         """
+        print(os.path.abspath(__file__), "BatchEncoding is_fast")
         return self._encodings is not None
 
     def __getitem__(self, item: Union[int, str]) -> Union[Any, EncodingFast]:
@@ -233,6 +236,7 @@ class BatchEncoding(UserDict):
 
         If the key is an integer, get the `tokenizers.Encoding` for batch item with index `key`.
         """
+        print(os.path.abspath(__file__), "BatchEncoding __getitem__")
         if isinstance(item, str):
             return self.data[item]
         elif self._encodings is not None:
@@ -244,15 +248,18 @@ class BatchEncoding(UserDict):
             )
 
     def __getattr__(self, item: str):
+        print(os.path.abspath(__file__), "BatchEncoding __getattr__")
         try:
             return self.data[item]
         except KeyError:
             raise AttributeError
 
     def __getstate__(self):
+        print(os.path.abspath(__file__), "BatchEncoding __getstate__")
         return {"data": self.data, "encodings": self._encodings}
 
     def __setstate__(self, state):
+        print(os.path.abspath(__file__), "BatchEncoding __setstate__")
         if "data" in state:
             self.data = state["data"]
 
@@ -260,12 +267,15 @@ class BatchEncoding(UserDict):
             self._encodings = state["encodings"]
 
     def keys(self):
+        print(os.path.abspath(__file__), "BatchEncoding keys")
         return self.data.keys()
 
     def values(self):
+        print(os.path.abspath(__file__), "BatchEncoding values")
         return self.data.values()
 
     def items(self):
+        print(os.path.abspath(__file__), "BatchEncoding items")
         return self.data.items()
 
     # After this point:
@@ -278,6 +288,7 @@ class BatchEncoding(UserDict):
         `Optional[List[tokenizers.Encoding]]`: The list all encodings from the tokenization process. Returns `None` if
         the input was tokenized through Python (i.e., not a fast) tokenizer.
         """
+        print(os.path.abspath(__file__), "BatchEncoding encodings")
         return self._encodings
 
     def tokens(self, batch_index: int = 0) -> List[str]:
@@ -291,6 +302,7 @@ class BatchEncoding(UserDict):
         Returns:
             `List[str]`: The list of tokens at that index.
         """
+        print(os.path.abspath(__file__), "BatchEncoding tokens")
         if not self._encodings:
             raise ValueError(
                 "tokens() is not available when using non-fast tokenizers (e.g. instance of a `XxxTokenizerFast`"
@@ -315,6 +327,7 @@ class BatchEncoding(UserDict):
             by the tokenizer are mapped to `None` and other tokens are mapped to the index of their corresponding
             sequence.
         """
+        print(os.path.abspath(__file__), "BatchEncoding sequence_ids")
         if not self._encodings:
             raise ValueError(
                 "sequence_ids() is not available when using non-fast tokenizers (e.g. instance of a `XxxTokenizerFast`"
@@ -334,6 +347,7 @@ class BatchEncoding(UserDict):
             tokenizer are mapped to `None` and other tokens are mapped to the index of their corresponding word
             (several tokens will be mapped to the same word index if they are parts of that word).
         """
+        print(os.path.abspath(__file__), "BatchEncoding words")
         if not self._encodings:
             raise ValueError(
                 "words() is not available when using non-fast tokenizers (e.g. instance of a `XxxTokenizerFast`"
@@ -358,6 +372,7 @@ class BatchEncoding(UserDict):
             tokenizer are mapped to `None` and other tokens are mapped to the index of their corresponding word
             (several tokens will be mapped to the same word index if they are parts of that word).
         """
+        print(os.path.abspath(__file__), "BatchEncoding word_ids")
         if not self._encodings:
             raise ValueError(
                 "word_ids() is not available when using non-fast tokenizers (e.g. instance of a `XxxTokenizerFast`"
@@ -390,7 +405,7 @@ class BatchEncoding(UserDict):
         Returns:
             `int`: Index of the word in the input sequence.
         """
-
+        print(os.path.abspath(__file__), "BatchEncoding token_to_sequence")
         if not self._encodings:
             raise ValueError("token_to_sequence() is not available when using Python based tokenizers")
         if token_index is not None:
@@ -428,7 +443,7 @@ class BatchEncoding(UserDict):
         Returns:
             `int`: Index of the word in the input sequence.
         """
-
+        print(os.path.abspath(__file__), "BatchEncoding token_to_word")
         if not self._encodings:
             raise ValueError("token_to_word() is not available when using Python based tokenizers")
         if token_index is not None:
@@ -478,7 +493,7 @@ class BatchEncoding(UserDict):
             Optional [`~tokenization_utils_base.TokenSpan`] Span of tokens in the encoded sequence. Returns `None` if
             no tokens correspond to the word.
         """
-
+        print(os.path.abspath(__file__), "BatchEncoding word_to_tokens")
         if not self._encodings:
             raise ValueError("word_to_tokens() is not available when using Python based tokenizers")
         if word_index is not None:
@@ -520,7 +535,7 @@ class BatchEncoding(UserDict):
             [`~tokenization_utils_base.CharSpan`]: Span of characters in the original string, or None, if the token
             (e.g. <s>, </s>) doesn't correspond to any chars in the origin string.
         """
-
+        print(os.path.abspath(__file__), "BatchEncoding token_to_chars")
         if not self._encodings:
             raise ValueError("token_to_chars() is not available when using Python based tokenizers")
         if token_index is not None:
@@ -563,7 +578,7 @@ class BatchEncoding(UserDict):
         Returns:
             `int`: Index of the token.
         """
-
+        print(os.path.abspath(__file__), "BatchEncoding char_to_token")
         if not self._encodings:
             raise ValueError("char_to_token() is not available when using Python based tokenizers")
         if char_index is not None:
@@ -608,7 +623,7 @@ class BatchEncoding(UserDict):
                 - end: index of the character following the last character associated to the token in the original
                   string
         """
-
+        print(os.path.abspath(__file__), "BatchEncoding word_to_chars")
         if not self._encodings:
             raise ValueError("word_to_chars() is not available when using Python based tokenizers")
         if word_index is not None:
@@ -647,7 +662,7 @@ class BatchEncoding(UserDict):
         Returns:
             `int` or `List[int]`: Index or indices of the associated encoded token(s).
         """
-
+        print(os.path.abspath(__file__), "BatchEncoding char_to_word")
         if not self._encodings:
             raise ValueError("char_to_word() is not available when using Python based tokenizers")
         if char_index is not None:
@@ -670,6 +685,7 @@ class BatchEncoding(UserDict):
             prepend_batch_axis (`int`, *optional*, defaults to `False`):
                 Whether or not to add the batch dimension during the conversion.
         """
+        print(os.path.abspath(__file__), "BatchEncoding convert_to_tensors")
         if tensor_type is None:
             return self
 
@@ -739,6 +755,7 @@ class BatchEncoding(UserDict):
 
     @torch_required
     def to(self, device: Union[str, "torch.device"]) -> "BatchEncoding":
+
         """
         Send all values to device by calling `v.to(device)` (PyTorch only).
 
@@ -749,6 +766,7 @@ class BatchEncoding(UserDict):
             [`BatchEncoding`]: The same instance after modification.
         """
 
+        print(os.path.abspath(__file__), "BatchEncoding to")
         # This check catches things like APEX blindly calling "to" on all inputs to a module
         # Otherwise it passes the casts down and casts the LongTensor containing the token idxs
         # into a HalfTensor
@@ -785,7 +803,7 @@ class SpecialTokensMixin:
         additional_special_tokens (tuple or list of `str` or `tokenizers.AddedToken`, *optional*):
             A tuple or a list of additional special tokens.
     """
-
+    print(os.path.abspath(__file__), "SpecialTokensMixin")
     SPECIAL_TOKENS_ATTRIBUTES = [
         "bos_token",
         "eos_token",
@@ -798,6 +816,7 @@ class SpecialTokensMixin:
     ]
 
     def __init__(self, verbose=True, **kwargs):
+        print(os.path.abspath(__file__), "SpecialTokensMixin __init__")
         self._bos_token = None
         self._eos_token = None
         self._unk_token = None
@@ -837,6 +856,7 @@ class SpecialTokensMixin:
         Return:
             `int`: The number of tokens added in the vocabulary during the operation.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin sanitize_special_tokens")
         return self.add_tokens(self.all_special_tokens_extended, special_tokens=True)
 
     def add_special_tokens(self, special_tokens_dict: Dict[str, Union[str, AddedToken]]) -> int:
@@ -887,6 +907,7 @@ class SpecialTokensMixin:
 
         assert tokenizer.cls_token == "<CLS>"
         ```"""
+        print(os.path.abspath(__file__), "SpecialTokensMixin add_special_tokens")
         if not special_tokens_dict:
             return 0
 
@@ -952,6 +973,7 @@ class SpecialTokensMixin:
         # Notice: resize_token_embeddings expect to receive the full size of the new vocabulary, i.e., the length of the tokenizer.
         model.resize_token_embeddings(len(tokenizer))
         ```"""
+        print(os.path.abspath(__file__), "SpecialTokensMixin add_tokens")
         if not new_tokens:
             return 0
 
@@ -961,6 +983,7 @@ class SpecialTokensMixin:
         return self._add_tokens(new_tokens, special_tokens=special_tokens)
 
     def _add_tokens(self, new_tokens: Union[List[str], List[AddedToken]], special_tokens: bool = False) -> int:
+        print(os.path.abspath(__file__), "SpecialTokensMixin _add_tokens")
         raise NotImplementedError
 
     @property
@@ -968,6 +991,7 @@ class SpecialTokensMixin:
         """
         `str`: Beginning of sentence token. Log an error if used while not having been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin bos_token")
         if self._bos_token is None:
             if self.verbose:
                 logger.error("Using bos_token, but it is not set yet.")
@@ -979,6 +1003,7 @@ class SpecialTokensMixin:
         """
         `str`: End of sentence token. Log an error if used while not having been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin eos_token")
         if self._eos_token is None:
             if self.verbose:
                 logger.error("Using eos_token, but it is not set yet.")
@@ -990,6 +1015,7 @@ class SpecialTokensMixin:
         """
         `str`: Unknown token. Log an error if used while not having been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin unk_token")
         if self._unk_token is None:
             if self.verbose:
                 logger.error("Using unk_token, but it is not set yet.")
@@ -1002,6 +1028,7 @@ class SpecialTokensMixin:
         `str`: Separation token, to separate context and query in an input sequence. Log an error if used while not
         having been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin sep_token")
         if self._sep_token is None:
             if self.verbose:
                 logger.error("Using sep_token, but it is not set yet.")
@@ -1013,6 +1040,7 @@ class SpecialTokensMixin:
         """
         `str`: Padding token. Log an error if used while not having been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin pad_token")
         if self._pad_token is None:
             if self.verbose:
                 logger.error("Using pad_token, but it is not set yet.")
@@ -1025,6 +1053,7 @@ class SpecialTokensMixin:
         `str`: Classification token, to extract a summary of an input sequence leveraging self-attention along the full
         depth of the model. Log an error if used while not having been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin cls_token")
         if self._cls_token is None:
             if self.verbose:
                 logger.error("Using cls_token, but it is not set yet.")
@@ -1037,6 +1066,7 @@ class SpecialTokensMixin:
         `str`: Mask token, to use when training a model with masked-language modeling. Log an error if used while not
         having been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin mask_token")
         if self._mask_token is None:
             if self.verbose:
                 logger.error("Using mask_token, but it is not set yet.")
@@ -1049,6 +1079,7 @@ class SpecialTokensMixin:
         `List[str]`: All the additional special tokens you may want to use. Log an error if used while not having been
         set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin additional_special_tokens")
         if self._additional_special_tokens is None:
             if self.verbose:
                 logger.error("Using additional_special_tokens, but it is not set yet.")
@@ -1057,34 +1088,42 @@ class SpecialTokensMixin:
 
     @bos_token.setter
     def bos_token(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin bos_token")
         self._bos_token = value
 
     @eos_token.setter
     def eos_token(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin eos_token")
         self._eos_token = value
 
     @unk_token.setter
     def unk_token(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin unk_token")
         self._unk_token = value
 
     @sep_token.setter
     def sep_token(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin sep_token")
         self._sep_token = value
 
     @pad_token.setter
     def pad_token(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin pad_token")
         self._pad_token = value
 
     @cls_token.setter
     def cls_token(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin cls_token")
         self._cls_token = value
 
     @mask_token.setter
     def mask_token(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin mask_token")
         self._mask_token = value
 
     @additional_special_tokens.setter
     def additional_special_tokens(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin additional_special_tokens")
         self._additional_special_tokens = value
 
     @property
@@ -1093,6 +1132,7 @@ class SpecialTokensMixin:
         `Optional[int]`: Id of the beginning of sentence token in the vocabulary. Returns `None` if the token has not
         been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin bos_token_id")
         if self._bos_token is None:
             return None
         return self.convert_tokens_to_ids(self.bos_token)
@@ -1103,6 +1143,7 @@ class SpecialTokensMixin:
         `Optional[int]`: Id of the end of sentence token in the vocabulary. Returns `None` if the token has not been
         set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin eos_token_id")
         if self._eos_token is None:
             return None
         return self.convert_tokens_to_ids(self.eos_token)
@@ -1112,6 +1153,7 @@ class SpecialTokensMixin:
         """
         `Optional[int]`: Id of the unknown token in the vocabulary. Returns `None` if the token has not been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin unk_token_id")
         if self._unk_token is None:
             return None
         return self.convert_tokens_to_ids(self.unk_token)
@@ -1122,6 +1164,7 @@ class SpecialTokensMixin:
         `Optional[int]`: Id of the separation token in the vocabulary, to separate context and query in an input
         sequence. Returns `None` if the token has not been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin sep_token_id")
         if self._sep_token is None:
             return None
         return self.convert_tokens_to_ids(self.sep_token)
@@ -1131,6 +1174,7 @@ class SpecialTokensMixin:
         """
         `Optional[int]`: Id of the padding token in the vocabulary. Returns `None` if the token has not been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin pad_token_id")
         if self._pad_token is None:
             return None
         return self.convert_tokens_to_ids(self.pad_token)
@@ -1140,6 +1184,7 @@ class SpecialTokensMixin:
         """
         `int`: Id of the padding token type in the vocabulary.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin pad_token_type_id")
         return self._pad_token_type_id
 
     @property
@@ -1150,6 +1195,7 @@ class SpecialTokensMixin:
 
         Returns `None` if the token has not been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin cls_token_id")
         if self._cls_token is None:
             return None
         return self.convert_tokens_to_ids(self.cls_token)
@@ -1160,6 +1206,7 @@ class SpecialTokensMixin:
         `Optional[int]`: Id of the mask token in the vocabulary, used when training a model with masked-language
         modeling. Returns `None` if the token has not been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin mask_token_id")
         if self._mask_token is None:
             return None
         return self.convert_tokens_to_ids(self.mask_token)
@@ -1170,38 +1217,47 @@ class SpecialTokensMixin:
         `List[int]`: Ids of all the additional special tokens in the vocabulary. Log an error if used while not having
         been set.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin additional_special_tokens_ids")
         return self.convert_tokens_to_ids(self.additional_special_tokens)
 
     @bos_token_id.setter
     def bos_token_id(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin bos_token_id")
         self._bos_token = self.convert_ids_to_tokens(value) if value is not None else None
 
     @eos_token_id.setter
     def eos_token_id(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin eos_token_id")
         self._eos_token = self.convert_ids_to_tokens(value) if value is not None else None
 
     @unk_token_id.setter
     def unk_token_id(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin unk_token_id")
         self._unk_token = self.convert_ids_to_tokens(value) if value is not None else None
 
     @sep_token_id.setter
     def sep_token_id(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin sep_token_id")
         self._sep_token = self.convert_ids_to_tokens(value) if value is not None else None
 
     @pad_token_id.setter
     def pad_token_id(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin pad_token_id")
         self._pad_token = self.convert_ids_to_tokens(value) if value is not None else None
 
     @cls_token_id.setter
     def cls_token_id(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin cls_token_id")
         self._cls_token = self.convert_ids_to_tokens(value) if value is not None else None
 
     @mask_token_id.setter
     def mask_token_id(self, value):
+        print(os.path.abspath(__file__), "SpecialTokensMixin mask_token_id")
         self._mask_token = self.convert_ids_to_tokens(value) if value is not None else None
 
     @additional_special_tokens_ids.setter
     def additional_special_tokens_ids(self, values):
+        print(os.path.abspath(__file__), "SpecialTokensMixin additional_special_tokens_ids")
         self._additional_special_tokens = [self.convert_ids_to_tokens(value) for value in values]
 
     @property
@@ -1212,6 +1268,7 @@ class SpecialTokensMixin:
 
         Convert potential tokens of `tokenizers.AddedToken` type to string.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin special_tokens_map")
         set_attr = {}
         for attr in self.SPECIAL_TOKENS_ATTRIBUTES:
             attr_value = getattr(self, "_" + attr)
@@ -1232,6 +1289,7 @@ class SpecialTokensMixin:
         Don't convert tokens of `tokenizers.AddedToken` type to string so they can be used to control more finely how
         special tokens are tokenized.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin special_tokens_map_extended")
         set_attr = {}
         for attr in self.SPECIAL_TOKENS_ATTRIBUTES:
             attr_value = getattr(self, "_" + attr)
@@ -1246,6 +1304,7 @@ class SpecialTokensMixin:
 
         Convert tokens of `tokenizers.AddedToken` type to string.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin all_special_tokens")
         all_toks = [str(s) for s in self.all_special_tokens_extended]
         return all_toks
 
@@ -1258,6 +1317,7 @@ class SpecialTokensMixin:
         Don't convert tokens of `tokenizers.AddedToken` type to string so they can be used to control more finely how
         special tokens are tokenized.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin all_special_tokens_extended")
         all_toks = []
         set_attr = self.special_tokens_map_extended
         for attr_value in set_attr.values():
@@ -1270,6 +1330,7 @@ class SpecialTokensMixin:
         """
         `List[int]`: List the ids of the special tokens(`'<unk>'`, `'<cls>'`, etc.) mapped to class attributes.
         """
+        print(os.path.abspath(__file__), "SpecialTokensMixin all_special_ids")
         all_toks = self.all_special_tokens
         all_ids = self.convert_tokens_to_ids(all_toks)
         return all_ids
@@ -1455,6 +1516,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
 
     Handles shared (mostly boiler plate) methods for those two classes.
     """
+    print(os.path.abspath(__file__), "PreTrainedTokenizerBase")
 
     vocab_files_names: Dict[str, str] = {}
     pretrained_vocab_files_map: Dict[str, Dict[str, str]] = {}
@@ -1470,6 +1532,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
     slow_tokenizer_class = None
 
     def __init__(self, **kwargs):
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase __init__")
         # inputs and kwargs for saving and re-loading (see ``from_pretrained`` and ``save_pretrained``)
         self.init_inputs = ()
         self.init_kwargs = copy.deepcopy(kwargs)
@@ -1507,6 +1570,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         """
         `int`: The maximum length of a sentence that can be fed to the model.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase max_len_single_sentence")
         return self.model_max_length - self.num_special_tokens_to_add(pair=False)
 
     @property
@@ -1514,10 +1578,12 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         """
         `int`: The maximum combined length of a pair of sentences that can be fed to the model.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase max_len_sentences_pair")
         return self.model_max_length - self.num_special_tokens_to_add(pair=True)
 
     @max_len_single_sentence.setter
     def max_len_single_sentence(self, value) -> int:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase max_len_single_sentence")
         # For backward compatibility, allow to try to setup 'max_len_single_sentence'.
         if value == self.model_max_length - self.num_special_tokens_to_add(pair=False) and self.verbose:
             if not self.deprecation_warnings.get("max_len_single_sentence", False):
@@ -1532,6 +1598,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
 
     @max_len_sentences_pair.setter
     def max_len_sentences_pair(self, value) -> int:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase max_len_sentences_pair")
         # For backward compatibility, allow to try to setup 'max_len_sentences_pair'.
         if value == self.model_max_length - self.num_special_tokens_to_add(pair=True) and self.verbose:
             if not self.deprecation_warnings.get("max_len_sentences_pair", False):
@@ -1543,10 +1610,12 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             raise ValueError("Setting 'max_len_sentences_pair' is now deprecated. This value is automatically set up.")
 
     def _set_processor_class(self, processor_class: str):
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _set_processor_class")
         """Sets processor class as an attribute."""
         self._processor_class = processor_class
 
     def __repr__(self) -> str:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase __repr__")
         return (
             f"{'PreTrainedTokenizerFast' if self.is_fast else 'PreTrainedTokenizer'}(name_or_path='{self.name_or_path}',"
             f" vocab_size={self.vocab_size}, model_max_len={self.model_max_length}, is_fast={self.is_fast},"
@@ -1555,6 +1624,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         )
 
     def get_vocab(self) -> Dict[str, int]:
+
         """
         Returns the vocabulary as a dictionary of token to index.
 
@@ -1564,6 +1634,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `Dict[str, int]`: The vocabulary.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase get_vocab")
         raise NotImplementedError()
 
     @classmethod
@@ -1644,6 +1715,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         # Otherwise use tokenizer.add_special_tokens({'unk_token': '<unk>'}) instead)
         assert tokenizer.unk_token == "<unk>"
         ```"""
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase from_pretrained")
         cache_dir = kwargs.pop("cache_dir", None)
         force_download = kwargs.pop("force_download", False)
         resume_download = kwargs.pop("resume_download", False)
@@ -1799,6 +1871,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         _commit_hash=None,
         **kwargs
     ):
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _from_pretrained")
         # We instantiate fast tokenizers based on a slow tokenizer if we don't have access to the tokenizer.json
         # file or if `from_slow` is set to True.
         from_slow = kwargs.get("from_slow", False)
@@ -2013,6 +2086,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
 
     @staticmethod
     def _eventually_correct_t5_max_length(pretrained_model_name_or_path, max_model_length, init_max_model_length):
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _eventually_correct_t5_max_length")
         # This method should be deleted in Transformers v5
         # Its only purpose is to potentially throw a warning
         # that incorrectly defined max lengths of T5's tokenizer are used
@@ -2062,6 +2136,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             A tuple of `str`: The files saved.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase save_pretrained")
         if os.path.isfile(save_directory):
             logger.error(f"Provided path ({save_directory}) should be a directory, not a file")
             return
@@ -2160,6 +2235,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Fast tokenizers can also be saved in a unique JSON file containing {config + vocab + added-tokens} using the
         specific [`~tokenization_utils_fast.PreTrainedTokenizerFast._save_pretrained`]
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _save_pretrained")
         if legacy_format is False:
             raise ValueError(
                 "Only fast tokenizers (instances of PreTrainedTokenizerFast) can be saved in non legacy format."
@@ -2197,6 +2273,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `Tuple(str)`: Paths to the files saved.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase save_vocabulary")
         raise NotImplementedError
 
     def tokenize(self, text: str, pair: Optional[str] = None, add_special_tokens: bool = False, **kwargs) -> List[str]:
@@ -2217,6 +2294,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `List[str]`: The list of tokens.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase tokenize")
         raise NotImplementedError
 
     @add_end_docstrings(
@@ -2256,6 +2334,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 the `tokenize` method) or a list of integers (tokenized string ids using the `convert_tokens_to_ids`
                 method).
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase encode")
         encoded_inputs = self.encode_plus(
             text,
             text_pair=text_pair,
@@ -2271,6 +2350,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         return encoded_inputs["input_ids"]
 
     def num_special_tokens_to_add(self, pair: bool = False) -> int:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase num_special_tokens_to_add")
         raise NotImplementedError
 
     def _get_padding_truncation_strategies(
@@ -2280,6 +2360,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Find the correct padding/truncation strategy with backward compatibility for old arguments (truncation_strategy
         and pad_to_max_length) and behaviors.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _get_padding_truncation_strategies")
         old_truncation_strategy = kwargs.pop("truncation_strategy", "do_not_truncate")
         old_pad_to_max_length = kwargs.pop("pad_to_max_length", False)
 
@@ -2459,6 +2540,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 list of strings (pretokenized string). If the sequences are provided as list of strings (pretokenized),
                 you must set `is_split_into_words=True` (to lift the ambiguity with a batch of sequences).
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase __call__")
         # To avoid duplicating
         all_kwargs = dict(
             add_special_tokens=add_special_tokens,
@@ -2521,6 +2603,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _call_one")
         # Input type checking for clearer error
         def _is_valid_text_input(t):
             if isinstance(t, str):
@@ -2653,7 +2736,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 the `tokenize` method) or a list of integers (tokenized string ids using the `convert_tokens_to_ids`
                 method).
         """
-
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase encode_plus")
         # Backward compatibility for 'truncation_strategy', 'pad_to_max_length'
         padding_strategy, truncation_strategy, max_length, kwargs = self._get_padding_truncation_strategies(
             padding=padding,
@@ -2706,6 +2789,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _encode_plus")
         raise NotImplementedError
 
     @add_end_docstrings(ENCODE_KWARGS_DOCSTRING, ENCODE_PLUS_ADDITIONAL_KWARGS_DOCSTRING)
@@ -2751,7 +2835,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 string/string-sequences/int-sequences or a list of pair of string/string-sequences/int-sequence (see
                 details in `encode_plus`).
         """
-
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase batch_encode_plus")
         # Backward compatibility for 'truncation_strategy', 'pad_to_max_length'
         padding_strategy, truncation_strategy, max_length, kwargs = self._get_padding_truncation_strategies(
             padding=padding,
@@ -2809,6 +2893,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _batch_encode_plus")
         raise NotImplementedError
 
     def pad(
@@ -2885,6 +2970,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             verbose (`bool`, *optional*, defaults to `True`):
                 Whether or not to print more information and warnings.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase pad")
         if self.__class__.__name__.endswith("Fast"):
             if not self.deprecation_warnings.get("Asking-to-pad-a-fast-tokenizer", False):
                 logger.warning_advice(
@@ -3000,6 +3086,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `List[int]`: The token type ids.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase create_token_type_ids_from_sequences")
         if token_ids_1 is None:
             return len(token_ids_0) * [0]
         return [0] * len(token_ids_0) + [1] * len(token_ids_1)
@@ -3020,6 +3107,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `List[int]`: The model input with special tokens.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase build_inputs_with_special_tokens")
         if token_ids_1 is None:
             return token_ids_0
         return token_ids_0 + token_ids_1
@@ -3061,7 +3149,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 Tokenized input ids of the second sequence. Can be obtained from a string by chaining the `tokenize`
                 and `convert_tokens_to_ids` methods.
         """
-
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase prepare_for_model")
         # Backward compatibility for 'truncation_strategy', 'pad_to_max_length'
         padding_strategy, truncation_strategy, max_length, kwargs = self._get_padding_truncation_strategies(
             padding=padding,
@@ -3204,6 +3292,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             overflowing tokens. Note: The *longest_first* strategy returns empty list of overflowing tokens if a pair
             of sequences (or a batch of pairs) is provided.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase truncate_sequences")
         if num_tokens_to_remove <= 0:
             return ids, pair_ids, []
 
@@ -3311,6 +3400,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             return_attention_mask:
                 (optional) Set to False to avoid returning attention mask (default: set to model specifics)
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _pad")
         # Load from model defaults
         if return_attention_mask is None:
             return_attention_mask = "attention_mask" in self.model_input_names
@@ -3371,6 +3461,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `str`: The joined tokens.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase convert_tokens_to_string")
         raise NotImplementedError
 
     def batch_decode(
@@ -3396,6 +3487,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `List[str]`: The list of decoded sentences.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase batch_decode")
         return [
             self.decode(
                 seq,
@@ -3433,6 +3525,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `str`: The decoded sentence.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase decode")
         # Convert inputs to python lists
         token_ids = to_py_obj(token_ids)
 
@@ -3451,6 +3544,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         clean_up_tokenization_spaces: bool = True,
         **kwargs
     ) -> str:
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _decode")
         raise NotImplementedError
 
     def get_special_tokens_mask(
@@ -3471,6 +3565,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             A list of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase get_special_tokens_mask")
         assert already_has_special_tokens and token_ids_1 is None, (
             "You cannot use ``already_has_special_tokens=False`` with this tokenizer. "
             "Please use a slow (full python) tokenizer to activate this argument. "
@@ -3495,6 +3590,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Returns:
             `str`: The cleaned-up string.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase clean_up_tokenization")
         out_string = (
             out_string.replace(" .", ".")
             .replace(" ?", "?")
@@ -3520,6 +3616,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             verbose (`bool`): Whether or not to print more information and warnings.
 
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _eventual_warn_about_too_long_sequence")
         if max_length is None and len(ids) > self.model_max_length and verbose:
             if not self.deprecation_warnings.get("sequence-length-is-longer-than-the-specified-maximum", False):
                 logger.warning(
@@ -3533,12 +3630,14 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         """
         Private method to put the tokenizer in input mode (when it has different modes for input/outputs)
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _switch_to_input_mode")
         pass
 
     def _switch_to_target_mode(self):
         """
         Private method to put the tokenizer in target mode (when it has different modes for input/outputs)
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase _switch_to_target_mode")
         pass
 
     @contextmanager
@@ -3547,6 +3646,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         Temporarily sets the tokenizer for encoding the targets. Useful for tokenizer associated to
         sequence-to-sequence models that need a slightly different processing for the labels.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase as_target_tokenizer")
         warnings.warn(
             "`as_target_tokenizer` is deprecated and will be removed in v5 of Transformers. You can tokenize your "
             "labels by using the argument `text_target` of the regular `__call__` method (either in the same call as "
@@ -3574,6 +3674,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             auto_class (`str` or `type`, *optional*, defaults to `"AutoTokenizer"`):
                 The auto class to register this new tokenizer with.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase register_for_auto_class")
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
@@ -3654,6 +3755,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             The full set of keys `[input_ids, attention_mask, labels]`, will only be returned if tgt_texts is passed.
             Otherwise, input_ids, attention_mask will be the only keys.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizerBase prepare_seq2seq_batch")
         # docstyle-ignore
         formatted_warning = """
 `prepare_seq2seq_batch` is deprecated and will be removed in version 5 of HuggingFace Transformers. Use the regular
@@ -3717,6 +3819,7 @@ def get_fast_tokenizer_file(tokenization_files: List[str]) -> str:
     Returns:
         `str`: The tokenization file to use.
     """
+    print(os.path.abspath(__file__), "PreTrainedTokenizerBase get_fast_tokenizer_file")
     tokenizer_files_map = {}
     for file_name in tokenization_files:
         search = _re_tokenizer_file.search(file_name)

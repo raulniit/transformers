@@ -115,6 +115,7 @@ PRETRAINED_INIT_CONFIGURATION = {
 
 
 def load_vocab(vocab_file):
+    print(os.path.abspath(__file__), "load_vocab")
     """Loads a vocabulary file into a dictionary."""
     vocab = collections.OrderedDict()
     with open(vocab_file, "r", encoding="utf-8") as reader:
@@ -126,6 +127,7 @@ def load_vocab(vocab_file):
 
 
 def whitespace_tokenize(text):
+    print(os.path.abspath(__file__), "whitespace_tokenize")
     """Runs basic whitespace cleaning and splitting on a piece of text."""
     text = text.strip()
     if not text:
@@ -135,6 +137,7 @@ def whitespace_tokenize(text):
 
 
 class BertTokenizer(PreTrainedTokenizer):
+    print(os.path.abspath(__file__), "BertTokenizer")
     r"""
     Construct a BERT tokenizer. Based on WordPiece.
 
@@ -235,20 +238,25 @@ class BertTokenizer(PreTrainedTokenizer):
 
     @property
     def do_lower_case(self):
+        print(os.path.abspath(__file__), "BertTokenizer do_lower_case")
         return self.basic_tokenizer.do_lower_case
 
     @property
     def vocab_size(self):
+        print(os.path.abspath(__file__), "BertTokenizer vocab_size")
         return len(self.vocab)
 
     @property
     def vocab_size_form(self):
+        print(os.path.abspath(__file__), "BertTokenizer vocab_size_form")
         return len(self.vocab_form)
 
     def get_vocab(self):
+        print(os.path.abspath(__file__), "BertTokenizer get_vocab")
         return dict(self.vocab, **self.added_tokens_encoder)
 
     def get_vocab_form(self):
+        print(os.path.abspath(__file__), "BertTokenizer get_vocab_form")
         return dict(self.vocab_form, **self.added_tokens_encoder)
 
     # def _tokenize(self, text):
@@ -266,9 +274,11 @@ class BertTokenizer(PreTrainedTokenizer):
     #     return split_tokens
 
     def _tokenize(self, text):
+        print(os.path.abspath(__file__), "BertTokenizer _tokenize")
         return PreTrainedTokenizer._tokenize(self, text)
 
     def _convert_token_to_id(self, token):
+        print(os.path.abspath(__file__), "BertTokenizer _convert_token_to_id")
         """Converts a token (str) in an id using the vocab."""
         # return self.vocab.get(token, self.vocab.get(self.unk_token))
         if self.vocab_form is not None:
@@ -281,12 +291,14 @@ class BertTokenizer(PreTrainedTokenizer):
             return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
 
     def _convert_id_to_token(self, index, return_form: bool = False):
+        print(os.path.abspath(__file__), "BertTokenizer _convert_id_to_token")
         """Converts an index (integer) in a token (str) using the vocab."""
         if return_form:
             return self.ids_to_tokens_form.get(index, self.unk_token)
         return self.ids_to_tokens.get(index, self.unk_token)
 
     def convert_tokens_to_string(self, tokens):
+        print(os.path.abspath(__file__), "BertTokenizer convert_tokens_to_string")
         """Converts a sequence of tokens (string) in a single string."""
         out_string = " ".join(tokens).replace(" ##", "").strip()
         return out_string
@@ -294,6 +306,7 @@ class BertTokenizer(PreTrainedTokenizer):
     def build_inputs_with_special_tokens(
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
     ) -> List[int]:
+        print(os.path.abspath(__file__), "BertTokenizer build_inputs_with_special_tokens")
         """
         Build model inputs from a sequence or a pair of sequence for sequence classification tasks by concatenating and
         adding special tokens. A BERT sequence has the following format:
@@ -319,6 +332,7 @@ class BertTokenizer(PreTrainedTokenizer):
     def get_special_tokens_mask(
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, already_has_special_tokens: bool = False
     ) -> List[int]:
+        print(os.path.abspath(__file__), "BertTokenizer get_special_tokens_mask")
         """
         Retrieve sequence ids from a token list that has no special tokens added. This method is called when adding
         special tokens using the tokenizer `prepare_for_model` method.
@@ -347,6 +361,7 @@ class BertTokenizer(PreTrainedTokenizer):
     def create_token_type_ids_from_sequences(
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
     ) -> List[int]:
+        print(os.path.abspath(__file__), "BertTokenizer create_token_type_ids_from_sequences")
         """
         Create a mask from the two sequences passed to be used in a sequence-pair classification task. A BERT sequence
         pair mask has the following format:
@@ -374,6 +389,7 @@ class BertTokenizer(PreTrainedTokenizer):
         return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
 
     def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> Tuple[str]:
+        print(os.path.abspath(__file__), "BertTokenizer save_vocabulary")
         index = 0
         if os.path.isdir(save_directory):
             vocab_file = os.path.join(

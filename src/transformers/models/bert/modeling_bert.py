@@ -106,7 +106,9 @@ BERT_PRETRAINED_MODEL_ARCHIVE_LIST = [
 
 
 def load_tf_weights_in_bert(model, config, tf_checkpoint_path):
+
     """Load tf checkpoints in a pytorch model."""
+    print(os.path.abspath(__file__), "load_tf_weights_in_bert")
     try:
         import re
 
@@ -179,9 +181,11 @@ def load_tf_weights_in_bert(model, config, tf_checkpoint_path):
 
 
 class BertEmbeddings(nn.Module):
-    """Construct the embeddings from word, position and token_type embeddings."""
 
+    """Construct the embeddings from word, position and token_type embeddings."""
+    print(os.path.abspath(__file__), "BertEmbeddings")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertEmbeddings __init__")
         super().__init__()
         self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
         self.form_embeddings = nn.Embedding(config.vocab_size_form, config.hidden_size, padding_idx=config.pad_token_id)
@@ -207,6 +211,7 @@ class BertEmbeddings(nn.Module):
         inputs_embeds: Optional[torch.FloatTensor] = None,
         past_key_values_length: int = 0,
     ) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertEmbeddings forward")
         if input_ids is not None:
             input_shape = input_ids.size()
         else:
@@ -242,7 +247,9 @@ class BertEmbeddings(nn.Module):
 
 
 class BertSelfAttention(nn.Module):
+    print(os.path.abspath(__file__), "BertSelfAttention")
     def __init__(self, config, position_embedding_type=None):
+        print(os.path.abspath(__file__), "BertSelfAttention __init__")
         super().__init__()
         if config.hidden_size % config.num_attention_heads != 0 and not hasattr(config, "embedding_size"):
             raise ValueError(
@@ -269,6 +276,7 @@ class BertSelfAttention(nn.Module):
         self.is_decoder = config.is_decoder
 
     def transpose_for_scores(self, x: torch.Tensor) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertSelfAttention transpose_for_scores")
         new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
         x = x.view(new_x_shape)
         return x.permute(0, 2, 1, 3)
@@ -283,6 +291,7 @@ class BertSelfAttention(nn.Module):
         past_key_value: Optional[Tuple[Tuple[torch.FloatTensor]]] = None,
         output_attentions: Optional[bool] = False,
     ) -> Tuple[torch.Tensor]:
+        print(os.path.abspath(__file__), "BertSelfAttention forward")
         mixed_query_layer = self.query(hidden_states)
 
         # If this is instantiated as a cross-attention module, the keys
@@ -369,13 +378,16 @@ class BertSelfAttention(nn.Module):
 
 
 class BertSelfOutput(nn.Module):
+    print(os.path.abspath(__file__), "BertSelfOutput")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertSelfOutput __init__")
         super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, hidden_states: torch.Tensor, input_tensor: torch.Tensor) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertSelfOutput forward")
         hidden_states = self.dense(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = self.LayerNorm(hidden_states + input_tensor)
@@ -383,13 +395,16 @@ class BertSelfOutput(nn.Module):
 
 
 class BertAttention(nn.Module):
+    print(os.path.abspath(__file__), "BertAttention")
     def __init__(self, config, position_embedding_type=None):
+        print(os.path.abspath(__file__), "__init__")
         super().__init__()
         self.self = BertSelfAttention(config, position_embedding_type=position_embedding_type)
         self.output = BertSelfOutput(config)
         self.pruned_heads = set()
 
     def prune_heads(self, heads):
+        print(os.path.abspath(__file__), "BertAttention prune_heads")
         if len(heads) == 0:
             return
         heads, index = find_pruneable_heads_and_indices(
@@ -417,6 +432,7 @@ class BertAttention(nn.Module):
         past_key_value: Optional[Tuple[Tuple[torch.FloatTensor]]] = None,
         output_attentions: Optional[bool] = False,
     ) -> Tuple[torch.Tensor]:
+        print(os.path.abspath(__file__), "BertAttention forward")
         self_outputs = self.self(
             hidden_states,
             attention_mask,
@@ -432,7 +448,9 @@ class BertAttention(nn.Module):
 
 
 class BertIntermediate(nn.Module):
+    print(os.path.abspath(__file__), "BertIntermediate")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertIntermediate __init__")
         super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.intermediate_size)
         if isinstance(config.hidden_act, str):
@@ -441,19 +459,23 @@ class BertIntermediate(nn.Module):
             self.intermediate_act_fn = config.hidden_act
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertIntermediate forward")
         hidden_states = self.dense(hidden_states)
         hidden_states = self.intermediate_act_fn(hidden_states)
         return hidden_states
 
 
 class BertOutput(nn.Module):
+    print(os.path.abspath(__file__), "BertOutput")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertOutput __init__")
         super().__init__()
         self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
         self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, hidden_states: torch.Tensor, input_tensor: torch.Tensor) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertOutput forward")
         hidden_states = self.dense(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = self.LayerNorm(hidden_states + input_tensor)
@@ -461,7 +483,9 @@ class BertOutput(nn.Module):
 
 
 class BertLayer(nn.Module):
+    print(os.path.abspath(__file__), "BertLayer")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertLayer __init__")
         super().__init__()
         self.chunk_size_feed_forward = config.chunk_size_feed_forward
         self.seq_len_dim = 1
@@ -485,6 +509,7 @@ class BertLayer(nn.Module):
         past_key_value: Optional[Tuple[Tuple[torch.FloatTensor]]] = None,
         output_attentions: Optional[bool] = False,
     ) -> Tuple[torch.Tensor]:
+        print(os.path.abspath(__file__), "BertLayer forward")
         # decoder uni-directional self-attention cached key/values tuple is at positions 1,2
         self_attn_past_key_value = past_key_value[:2] if past_key_value is not None else None
         self_attention_outputs = self.attention(
@@ -541,13 +566,16 @@ class BertLayer(nn.Module):
         return outputs
 
     def feed_forward_chunk(self, attention_output):
+        print(os.path.abspath(__file__), "BertLayer feed_forward_chunk")
         intermediate_output = self.intermediate(attention_output)
         layer_output = self.output(intermediate_output, attention_output)
         return layer_output
 
 
 class BertEncoder(nn.Module):
+    print(os.path.abspath(__file__), "BertEncoder")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertEncoder __init__")
         super().__init__()
         self.config = config
         self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
@@ -566,6 +594,7 @@ class BertEncoder(nn.Module):
         output_hidden_states: Optional[bool] = False,
         return_dict: Optional[bool] = True,
     ) -> Union[Tuple[torch.Tensor], BaseModelOutputWithPastAndCrossAttentions]:
+        print(os.path.abspath(__file__), "BertEncoder forward")
         all_hidden_states = () if output_hidden_states else None
         all_self_attentions = () if output_attentions else None
         all_cross_attentions = () if output_attentions and self.config.add_cross_attention else None
@@ -644,12 +673,15 @@ class BertEncoder(nn.Module):
 
 
 class BertPooler(nn.Module):
+    print(os.path.abspath(__file__), "BertPooler")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertPooler __init__")
         super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.activation = nn.Tanh()
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertPooler forward")
         # We "pool" the model by simply taking the hidden state corresponding
         # to the first token.
         first_token_tensor = hidden_states[:, 0]
@@ -659,7 +691,9 @@ class BertPooler(nn.Module):
 
 
 class BertPredictionHeadTransform(nn.Module):
+    print(os.path.abspath(__file__), "BertPredictionHeadTransform")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertPredictionHeadTransform __init__")
         super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         if isinstance(config.hidden_act, str):
@@ -669,6 +703,7 @@ class BertPredictionHeadTransform(nn.Module):
         self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertPredictionHeadTransform forward")
         hidden_states = self.dense(hidden_states)
         hidden_states = self.transform_act_fn(hidden_states)
         hidden_states = self.LayerNorm(hidden_states)
@@ -676,7 +711,9 @@ class BertPredictionHeadTransform(nn.Module):
 
 
 class BertLMPredictionHead(nn.Module):
+    print(os.path.abspath(__file__), "BertLMPredictionHead")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertLMPredictionHead __init__")
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
 
@@ -690,49 +727,59 @@ class BertLMPredictionHead(nn.Module):
         self.decoder.bias = self.bias
 
     def forward(self, hidden_states):
+        print(os.path.abspath(__file__), "BertLMPredictionHead forward")
         hidden_states = self.transform(hidden_states)
         hidden_states = self.decoder(hidden_states)
         return hidden_states
 
 
 class BertOnlyMLMHead(nn.Module):
+    print(os.path.abspath(__file__), "BertOnlyMLMHead")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertOnlyMLMHead __init__")
         super().__init__()
         self.predictions = BertLMPredictionHead(config)
 
     def forward(self, sequence_output: torch.Tensor) -> torch.Tensor:
+        print(os.path.abspath(__file__), "BertOnlyMLMHead forward")
         prediction_scores = self.predictions(sequence_output)
         return prediction_scores
 
 
 class BertOnlyNSPHead(nn.Module):
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertOnlyNSPHead")
         super().__init__()
         self.seq_relationship = nn.Linear(config.hidden_size, 2)
 
     def forward(self, pooled_output):
+        print(os.path.abspath(__file__), "BertOnlyNSPHead forward")
         seq_relationship_score = self.seq_relationship(pooled_output)
         return seq_relationship_score
 
 
 class BertPreTrainingHeads(nn.Module):
+    print(os.path.abspath(__file__), "BertPreTrainingHeads")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertPreTrainingHeads __init__")
         super().__init__()
         self.predictions = BertLMPredictionHead(config)
         self.seq_relationship = nn.Linear(config.hidden_size, 2)
 
     def forward(self, sequence_output, pooled_output):
+        print(os.path.abspath(__file__), "BertPreTrainingHeads forward")
         prediction_scores = self.predictions(sequence_output)
         seq_relationship_score = self.seq_relationship(pooled_output)
         return prediction_scores, seq_relationship_score
 
 
 class BertPreTrainedModel(PreTrainedModel):
+
     """
     An abstract class to handle weights initialization and a simple interface for downloading and loading pretrained
     models.
     """
-
+    print(os.path.abspath(__file__), "BertPreTrainedModel")
     config_class = BertConfig
     load_tf_weights = load_tf_weights_in_bert
     base_model_prefix = "bert"
@@ -740,6 +787,7 @@ class BertPreTrainedModel(PreTrainedModel):
     _keys_to_ignore_on_load_missing = [r"position_ids"]
 
     def _init_weights(self, module):
+        print(os.path.abspath(__file__), "BertPreTrainedModel _init_weights")
         """Initialize the weights"""
         if isinstance(module, nn.Linear):
             # Slightly different from the TF version which uses truncated_normal for initialization
@@ -756,12 +804,14 @@ class BertPreTrainedModel(PreTrainedModel):
             module.weight.data.fill_(1.0)
 
     def _set_gradient_checkpointing(self, module, value=False):
+        print(os.path.abspath(__file__), "BertPreTrainedModel _set_gradient_checkpointing")
         if isinstance(module, BertEncoder):
             module.gradient_checkpointing = value
 
 
 @dataclass
 class BertForPreTrainingOutput(ModelOutput):
+
     """
     Output type of [`BertForPreTraining`].
 
@@ -786,7 +836,7 @@ class BertForPreTrainingOutput(ModelOutput):
             Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
             heads.
     """
-
+    print(os.path.abspath(__file__), "BertForPreTrainingOutput")
     loss: Optional[torch.FloatTensor] = None
     prediction_logits: torch.FloatTensor = None
     seq_relationship_logits: torch.FloatTensor = None
@@ -866,7 +916,6 @@ BERT_INPUTS_DOCSTRING = r"""
 )
 class BertModel(BertPreTrainedModel):
     """
-
     The model can behave as an encoder (with only self-attention) as well as a decoder, in which case a layer of
     cross-attention is added between the self-attention layers, following the architecture described in [Attention is
     all you need](https://arxiv.org/abs/1706.03762) by Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit,
@@ -876,8 +925,9 @@ class BertModel(BertPreTrainedModel):
     to `True`. To be used in a Seq2Seq model, the model needs to initialized with both `is_decoder` argument and
     `add_cross_attention` set to `True`; an `encoder_hidden_states` is then expected as an input to the forward pass.
     """
-
+    print(os.path.abspath(__file__), "BertModel")
     def __init__(self, config, add_pooling_layer=True):
+        print(os.path.abspath(__file__), "BertModel __init__")
         super().__init__(config)
         self.config = config
 
@@ -890,16 +940,20 @@ class BertModel(BertPreTrainedModel):
         self.post_init()
 
     def get_input_embeddings(self):
+        print(os.path.abspath(__file__), "BertModel get_input_embeddings")
         return (self.embeddings.lemma_embeddings, self.embeddings.form_embeddings)
 
     def set_input_embeddings(self, values):
+        print(os.path.abspath(__file__), "BertModel set_input_embeddings")
         self.embeddings.lemma_embeddings, self.embeddings.form_embeddings = values
+
 
     def _prune_heads(self, heads_to_prune):
         """
         Prunes heads of the model. heads_to_prune: dict of {layer_num: list of heads to prune in this layer} See base
         class PreTrainedModel
         """
+        print(os.path.abspath(__file__), "BertModel _prune_heads")
         for layer, heads in heads_to_prune.items():
             self.encoder.layer[layer].attention.prune_heads(heads)
 
@@ -946,6 +1000,8 @@ class BertModel(BertPreTrainedModel):
             If set to `True`, `past_key_values` key value states are returned and can be used to speed up decoding (see
             `past_key_values`).
         """
+
+        print(os.path.abspath(__file__), "BertModel forward")
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -1048,7 +1104,9 @@ class BertModel(BertPreTrainedModel):
     BERT_START_DOCSTRING,
 )
 class BertForPreTraining(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertForPreTraining")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertForPreTraining __init__")
         super().__init__(config)
 
         self.bert = BertModel(config)
@@ -1058,9 +1116,11 @@ class BertForPreTraining(BertPreTrainedModel):
         self.post_init()
 
     def get_output_embeddings(self):
+        print(os.path.abspath(__file__), "BertForPreTraining get_output_embeddings")
         return self.cls.predictions.decoder
 
     def set_output_embeddings(self, new_embeddings):
+        print(os.path.abspath(__file__), "BertForPreTraining set_output_embeddings")
         self.cls.predictions.decoder = new_embeddings
 
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
@@ -1079,6 +1139,7 @@ class BertForPreTraining(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], BertForPreTrainingOutput]:
+
         r"""
             labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
                 Labels for computing the masked language modeling loss. Indices should be in `[-100, 0, ...,
@@ -1111,6 +1172,7 @@ class BertForPreTraining(BertPreTrainedModel):
         >>> seq_relationship_logits = outputs.seq_relationship_logits
         ```
         """
+        print(os.path.abspath(__file__), "BertForPreTraining forward")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         outputs = self.bert(
@@ -1152,11 +1214,13 @@ class BertForPreTraining(BertPreTrainedModel):
     """Bert Model with a `language modeling` head on top for CLM fine-tuning.""", BERT_START_DOCSTRING
 )
 class BertLMHeadModel(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertLMHeadModel")
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
     _keys_to_ignore_on_load_missing = [r"position_ids", r"predictions.decoder.bias"]
 
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertLMHeadModel __init__")
         super().__init__(config)
 
         if not config.is_decoder:
@@ -1169,9 +1233,11 @@ class BertLMHeadModel(BertPreTrainedModel):
         self.post_init()
 
     def get_output_embeddings(self):
+        print(os.path.abspath(__file__), "BertLMHeadModel get_output_embeddings")
         return self.cls.predictions.decoder
 
     def set_output_embeddings(self, new_embeddings):
+        print(os.path.abspath(__file__), "BertLMHeadModel set_output_embeddings")
         self.cls.predictions.decoder = new_embeddings
 
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
@@ -1198,6 +1264,7 @@ class BertLMHeadModel(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], CausalLMOutputWithCrossAttentions]:
+
         r"""
         encoder_hidden_states  (`torch.FloatTensor` of shape `(batch_size, sequence_length, hidden_size)`, *optional*):
             Sequence of hidden-states at the output of the last layer of the encoder. Used in the cross-attention if
@@ -1222,6 +1289,7 @@ class BertLMHeadModel(BertPreTrainedModel):
             If set to `True`, `past_key_values` key value states are returned and can be used to speed up decoding (see
             `past_key_values`).
         """
+        print(os.path.abspath(__file__), "BertLMHeadModel forward")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
         if labels is not None:
             use_cache = False
@@ -1267,6 +1335,7 @@ class BertLMHeadModel(BertPreTrainedModel):
         )
 
     def prepare_inputs_for_generation(self, input_ids, past=None, attention_mask=None, **model_kwargs):
+        print(os.path.abspath(__file__), "BertLMHeadModel prepare_inputs_for_generation")
         input_shape = input_ids.shape
         # if model is used as a decoder in encoder-decoder model, the decoder attention mask is created on the fly
         if attention_mask is None:
@@ -1279,6 +1348,7 @@ class BertLMHeadModel(BertPreTrainedModel):
         return {"input_ids": input_ids, "attention_mask": attention_mask, "past_key_values": past}
 
     def _reorder_cache(self, past, beam_idx):
+        print(os.path.abspath(__file__), "BertLMHeadModel _reorder_cache")
         reordered_past = ()
         for layer_past in past:
             reordered_past += (tuple(past_state.index_select(0, beam_idx) for past_state in layer_past),)
@@ -1287,11 +1357,13 @@ class BertLMHeadModel(BertPreTrainedModel):
 
 @add_start_docstrings("""Bert Model with a `language modeling` head on top.""", BERT_START_DOCSTRING)
 class BertForMaskedLM(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertForMaskedLM")
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
     _keys_to_ignore_on_load_missing = [r"position_ids", r"predictions.decoder.bias"]
 
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertForMaskedLM __init__")
         super().__init__(config)
 
         if config.is_decoder:
@@ -1307,9 +1379,11 @@ class BertForMaskedLM(BertPreTrainedModel):
         self.post_init()
 
     def get_output_embeddings(self):
+        print(os.path.abspath(__file__), "BertForMaskedLM get_output_embeddings")
         return self.cls.predictions.decoder
 
     def set_output_embeddings(self, new_embeddings):
+        print(os.path.abspath(__file__), "BertForMaskedLM set_output_embeddings")
         self.cls.predictions.decoder = new_embeddings
 
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
@@ -1336,13 +1410,14 @@ class BertForMaskedLM(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], MaskedLMOutput]:
+
         r"""
         labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
             Labels for computing the masked language modeling loss. Indices should be in `[-100, 0, ...,
             config.vocab_size]` (see `input_ids` docstring) Tokens with indices set to `-100` are ignored (masked), the
             loss is only computed for the tokens with labels in `[0, ..., config.vocab_size]`
         """
-
+        print(os.path.abspath(__file__), "BertForMaskedLM forward")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         outputs = self.bert(
@@ -1379,6 +1454,7 @@ class BertForMaskedLM(BertPreTrainedModel):
         )
 
     def prepare_inputs_for_generation(self, input_ids, attention_mask=None, **model_kwargs):
+        print(os.path.abspath(__file__), "BertForMaskedLM prepare_inputs_for_generation")
         input_shape = input_ids.shape
         effective_batch_size = input_shape[0]
 
@@ -1400,7 +1476,9 @@ class BertForMaskedLM(BertPreTrainedModel):
     BERT_START_DOCSTRING,
 )
 class BertForNextSentencePrediction(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertForNextSentencePrediction")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertForNextSentencePrediction __init__")
         super().__init__(config)
 
         self.bert = BertModel(config)
@@ -1425,6 +1503,7 @@ class BertForNextSentencePrediction(BertPreTrainedModel):
         return_dict: Optional[bool] = None,
         **kwargs,
     ) -> Union[Tuple[torch.Tensor], NextSentencePredictorOutput]:
+
         r"""
         labels (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
             Labels for computing the next sequence prediction (classification) loss. Input should be a sequence pair
@@ -1453,7 +1532,7 @@ class BertForNextSentencePrediction(BertPreTrainedModel):
         >>> assert logits[0, 0] < logits[0, 1]  # next sentence was random
         ```
         """
-
+        print(os.path.abspath(__file__), "BertForNextSentencePrediction forward")
         if "next_sentence_label" in kwargs:
             warnings.warn(
                 "The `next_sentence_label` argument is deprecated and will be removed in a future version, use"
@@ -1505,7 +1584,9 @@ class BertForNextSentencePrediction(BertPreTrainedModel):
     BERT_START_DOCSTRING,
 )
 class BertForSequenceClassification(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertForSequenceClassification")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertForSequenceClassification __init__")
         super().__init__(config)
         self.num_labels = config.num_labels
         self.config = config
@@ -1542,12 +1623,14 @@ class BertForSequenceClassification(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], SequenceClassifierOutput]:
+
         r"""
         labels (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
             Labels for computing the sequence classification/regression loss. Indices should be in `[0, ...,
             config.num_labels - 1]`. If `config.num_labels == 1` a regression loss is computed (Mean-Square loss), If
             `config.num_labels > 1` a classification loss is computed (Cross-Entropy).
         """
+        print(os.path.abspath(__file__), "BertForSequenceClassification forward")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         outputs = self.bert(
@@ -1609,7 +1692,9 @@ class BertForSequenceClassification(BertPreTrainedModel):
     BERT_START_DOCSTRING,
 )
 class BertForMultipleChoice(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertForMultipleChoice")
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertForMultipleChoice __init__")
         super().__init__(config)
 
         self.bert = BertModel(config)
@@ -1642,12 +1727,14 @@ class BertForMultipleChoice(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], MultipleChoiceModelOutput]:
+
         r"""
         labels (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
             Labels for computing the multiple choice classification loss. Indices should be in `[0, ...,
             num_choices-1]` where `num_choices` is the size of the second dimension of the input tensors. (See
             `input_ids` above)
         """
+        print(os.path.abspath(__file__), "BertForMultipleChoice forward")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
         num_choices = input_ids.shape[1] if input_ids is not None else inputs_embeds.shape[1]
 
@@ -1704,10 +1791,12 @@ class BertForMultipleChoice(BertPreTrainedModel):
     BERT_START_DOCSTRING,
 )
 class BertForTokenClassification(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertForTokenClassification")
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertForTokenClassification __init__")
         super().__init__(config)
         self.num_labels = config.num_labels
 
@@ -1743,10 +1832,12 @@ class BertForTokenClassification(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], TokenClassifierOutput]:
+
         r"""
         labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
             Labels for computing the token classification loss. Indices should be in `[0, ..., config.num_labels - 1]`.
         """
+        print(os.path.abspath(__file__), "BertForTokenClassification forward")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         outputs = self.bert(
@@ -1791,10 +1882,12 @@ class BertForTokenClassification(BertPreTrainedModel):
     BERT_START_DOCSTRING,
 )
 class BertForQuestionAnswering(BertPreTrainedModel):
+    print(os.path.abspath(__file__), "BertForQuestionAnswering")
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
     def __init__(self, config):
+        print(os.path.abspath(__file__), "BertForQuestionAnswering __init__")
         super().__init__(config)
         self.num_labels = config.num_labels
 
@@ -1829,6 +1922,7 @@ class BertForQuestionAnswering(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], QuestionAnsweringModelOutput]:
+
         r"""
         start_positions (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
             Labels for position (index) of the start of the labelled span for computing the token classification loss.
@@ -1839,6 +1933,7 @@ class BertForQuestionAnswering(BertPreTrainedModel):
             Positions are clamped to the length of the sequence (`sequence_length`). Position outside of the sequence
             are not taken into account for computing the loss.
         """
+        print(os.path.abspath(__file__), "BertForQuestionAnswering forward")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         outputs = self.bert(

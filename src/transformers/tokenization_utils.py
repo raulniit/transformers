@@ -19,6 +19,7 @@
 import bisect
 import itertools
 import re
+import os
 import unicodedata
 import random
 from collections import OrderedDict
@@ -57,6 +58,7 @@ class Trie:
     """
 
     def __init__(self):
+        print(os.path.abspath(__file__), "Trie __init__")
         self.data = {}
 
     def add(self, word: str):
@@ -79,6 +81,7 @@ class Trie:
         {"H": {"e": {"l": {"l": {"o": {"": 1, " ": {"友": {"達": {"": 1}}}}}}}}}
         ```
         """
+        print(os.path.abspath(__file__), "Trie add")
         if not word:
             # Prevent empty string
             return
@@ -109,6 +112,7 @@ class Trie:
         ["[CLS]", " This is a ", "extra_id_100"]
         ```
         """
+        print(os.path.abspath(__file__), "Trie split")
         # indexes are counted left of the chars index.
         # "hello", index 0, is left of h, index 1 is between h and e.
         # index 5 is right of the "o".
@@ -242,6 +246,7 @@ class Trie:
         return self.cut_text(text, offsets)
 
     def cut_text(self, text, offsets):
+        print(os.path.abspath(__file__), "Trie cut_text")
         # We have all the offsets now, we just need to do the actual splitting.
         # We need to eventually add the first part of the string and the eventual
         # last part.
@@ -268,6 +273,7 @@ class Trie:
 
 def _is_whitespace(char):
     """Checks whether `char` is a whitespace character."""
+    print(os.path.abspath(__file__), "_is_whitespace")
     # \t, \n, and \r are technically control characters but we treat them
     # as whitespace since they are generally considered as such.
     if char == " " or char == "\t" or char == "\n" or char == "\r":
@@ -280,6 +286,7 @@ def _is_whitespace(char):
 
 def _is_control(char):
     """Checks whether `char` is a control character."""
+    print(os.path.abspath(__file__), "_is_control")
     # These are technically control characters but we count them as whitespace
     # characters.
     if char == "\t" or char == "\n" or char == "\r":
@@ -292,6 +299,7 @@ def _is_control(char):
 
 def _is_punctuation(char):
     """Checks whether `char` is a punctuation character."""
+    print(os.path.abspath(__file__), "_is_punctuation")
     cp = ord(char)
     # We treat all non-letter/number ASCII as punctuation.
     # Characters such as "^", "$", and "`" are not in the Unicode
@@ -307,12 +315,14 @@ def _is_punctuation(char):
 
 def _is_end_of_word(text):
     """Checks whether the last character in text is one of a punctuation, control or whitespace character."""
+    print(os.path.abspath(__file__), "_is_end_of_word")
     last_char = text[-1]
     return bool(_is_control(last_char) | _is_punctuation(last_char) | _is_whitespace(last_char))
 
 
 def _is_start_of_word(text):
     """Checks whether the first character in text is one of a punctuation, control or whitespace character."""
+    print(os.path.abspath(__file__), "_is_start_of_word")
     first_char = text[0]
     return bool(_is_control(first_char) | _is_punctuation(first_char) | _is_whitespace(first_char))
 
@@ -321,6 +331,7 @@ def _insert_one_token_to_ordered_list(token_list: List[str], new_token: str):
     """
     Inserts one token to an ordered list if it does not already exist. Note: token_list must be sorted.
     """
+    print(os.path.abspath(__file__), "_insert_one_token_to_ordered_list")
     insertion_idx = bisect.bisect_left(token_list, new_token)
     # Checks if new_token is already in the ordered token_list
     if insertion_idx < len(token_list) and token_list[insertion_idx] == new_token:
@@ -343,8 +354,9 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     This class also contain the added tokens in a unified way on top of all tokenizers so we don't have to handle the
     specific vocabulary augmentation methods of the various underlying dictionary structures (BPE, sentencepiece...).
     """
-
+    print(os.path.abspath(__file__), "PreTrainedTokenizer")
     def __init__(self, **kwargs):
+        print(os.path.abspath(__file__), "PreTrainedTokenizer __init__")
         super().__init__(**kwargs)
 
         # Added tokens - We store this for both slow and fast tokenizers
@@ -358,6 +370,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
 
     @property
     def is_fast(self) -> bool:
+        print(os.path.abspath(__file__), "PreTrainedTokenizer is_fast")
         return False
 
     @property
@@ -365,6 +378,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         """
         `int`: Size of the base vocabulary (without the added tokens).
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer vocab_size")
         raise NotImplementedError
 
     def get_added_vocab(self) -> Dict[str, int]:
@@ -374,12 +388,14 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Returns:
             `Dict[str, int]`: The added tokens.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer get_added_vocab")
         return self.added_tokens_encoder
 
     def __len__(self):
         """
         Size of the full vocabulary with the added tokens.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer __len__")
         return self.vocab_size + len(self.added_tokens_encoder)
 
     def _add_tokens(self, new_tokens: Union[List[str], List[AddedToken]], special_tokens: bool = False) -> int:
@@ -409,6 +425,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         # Note: resize_token_embeddings expects to receive the full size of the new vocabulary, i.e. the length of the tokenizer.
         model.resize_token_embeddings(len(tokenizer))
         ```"""
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _add_tokens")
         new_tokens = [str(tok) for tok in new_tokens]
 
         tokens_to_add = []
@@ -448,6 +465,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return len(tokens_to_add)
 
     def _create_trie(self, unique_no_split_tokens):
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _create_trie")
         trie = Trie()
         for token in unique_no_split_tokens:
             if hasattr(self, "do_lower_case") and self.do_lower_case and token not in self.all_special_tokens:
@@ -475,6 +493,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Returns:
             `int`: Number of special tokens added to sequences.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer num_special_tokens_to_add")
         token_ids_0 = []
         token_ids_1 = []
         return len(self.build_inputs_with_special_tokens(token_ids_0, token_ids_1 if pair else None))
@@ -495,6 +514,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Returns:
             `List[str]`: The list of tokens.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer tokenize")
         # Simple mapping string => AddedToken for special tokens with specific tokenization behaviors
         all_special_tokens_extended = dict(
             (str(t), t) for t in self.all_special_tokens_extended if isinstance(t, AddedToken)
@@ -556,12 +576,13 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
 
         Do NOT take care of added tokens.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _tokenize")
         special_tokens = [special.strip("[]") for special in list(self.all_special_tokens)]
         tekst = Text(text).tag_layer("morph_analysis")
         tokens = []
         for i, span in enumerate(tekst.morph_analysis):
             if span["text"][0] == "]":
-                if i - 2  > 0:
+                if i - 2  >= 0:
                     special = tekst.morph_analysis[i-1]["text"][0]
                     if special in special_tokens and tekst.morph_analysis[i-2]["text"][0] == "[":
                         tokens = tokens[:(len(tokens)-2)]
@@ -589,6 +610,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Returns:
             `int` or `List[int]`: The token id or list of token ids.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer convert_tokens_to_ids")
         if tokens is None:
             return None
 
@@ -601,6 +623,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return ids
 
     def _convert_token_to_id_with_added_voc(self, token):
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _convert_token_to_id_with_added_voc")
         if token is None:
             return None
 
@@ -609,6 +632,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return self._convert_token_to_id(token)
 
     def _convert_token_to_id(self, token):
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _convert_token_to_id")
         return (self.added_tokens_encoder[token[0]], self.unk_token)
 
     def _encode_plus(
@@ -632,6 +656,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _encode_plus")
         def get_input_ids(text):
             if isinstance(text, str):
                 tokens = self.tokenize(text, **kwargs)
@@ -716,6 +741,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _batch_encode_plus")
         def get_input_ids(text):
             if isinstance(text, str):
                 tokens = self.tokenize(text, **kwargs)
@@ -800,6 +826,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Args:
             batch_ids_pairs: list of tokenized input ids or input ids pairs
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _batch_prepare_for_model")
 
         batch_outputs = {}
         for first_ids, second_ids in batch_ids_pairs:
@@ -861,6 +888,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Returns:
             `Tuple[str, Dict[str, Any]]`: The prepared text and the unused kwargs.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer prepare_for_tokenization")
         return (text, kwargs)
 
     def get_special_tokens_mask(
@@ -881,6 +909,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Returns:
             A list of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer get_special_tokens_mask")
         if already_has_special_tokens:
             if token_ids_1 is not None:
                 raise ValueError(
@@ -902,7 +931,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         ...
 
     def convert_ids_to_tokens(
-        self, ids: Union[int, List[int]], skip_special_tokens: bool = False, return_form: bool = False
+        self, ids: Union[int, List[Tuple[int, int]]], skip_special_tokens: bool = False, return_form: bool = False
     ) -> Union[str, List[str]]:
         """
         Converts a single index or a sequence of indices in a token or a sequence of tokens, using the vocabulary and
@@ -917,41 +946,50 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Returns:
             `str` or `List[str]`: The decoded token(s).
         """
+        print(os.path.abspath(__file__), "PreTrainedTokenizer convert_ids_to_tokens")
         if isinstance(ids, int):
             if ids in self.added_tokens_decoder:
                 return self.added_tokens_decoder[ids]
             else:
                 return self._convert_id_to_token(ids, return_form = return_form)
         tokens = []
-        for index in ids:
-            index = int(index)
-            if skip_special_tokens and index in self.all_special_ids:
+        for input_tuple in ids:
+            if type(input_tuple) is list:
+                input_tuple = tuple(input_tuple)
+            if return_form:
+                index = int(input_tuple[1])
+            else:
+                index = int(input_tuple[0])
+            print(input_tuple)
+            if skip_special_tokens and input_tuple in self.all_special_ids:
                 continue
             if index in self.added_tokens_decoder:
                 tokens.append(self.added_tokens_decoder[index])
             else:
-                tokens.append(self._convert_id_to_token(index))
+                tokens.append(self._convert_id_to_token(index, return_form = return_form))
         return tokens
 
     def _convert_id_to_token(self, index: int, return_form: bool = False) -> str:
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _convert_id_to_token")
         raise NotImplementedError
 
     def convert_tokens_to_string(self, tokens: List[str]) -> str:
+        print(os.path.abspath(__file__), "PreTrainedTokenizer convert_tokens_to_string")
         return " ".join(tokens)
 
     def _decode(
         self,
-        token_ids: List[int],
+        token_ids: List[Tuple[int, int]],
         return_form: bool = False,
         skip_special_tokens: bool = False,
         clean_up_tokenization_spaces: bool = True,
         spaces_between_special_tokens: bool = True,
         **kwargs
     ) -> str:
+        print(os.path.abspath(__file__), "PreTrainedTokenizer _decode")
         self._decode_use_source_tokenizer = kwargs.pop("use_source_tokenizer", False)
 
         filtered_tokens = self.convert_ids_to_tokens(token_ids, skip_special_tokens=skip_special_tokens, return_form = return_form)
-
         # To avoid mixing byte-level and unicode for byte-level BPT
         # we need to build string separately for added tokens and byte-level tokens
         # cf. https://github.com/huggingface/transformers/issues/1133

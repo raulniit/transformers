@@ -20,6 +20,7 @@ from typing import Mapping
 from ...configuration_utils import PretrainedConfig
 from ...onnx import OnnxConfig
 from ...utils import logging
+import os
 
 
 logger = logging.get_logger(__name__)
@@ -135,7 +136,7 @@ class BertConfig(PretrainedConfig):
     >>> configuration = model.config
     ```"""
     model_type = "bert"
-
+    print(os.path.abspath(__file__), "BertConfig")
     def __init__(
         self,
         vocab_size=30522,
@@ -157,6 +158,7 @@ class BertConfig(PretrainedConfig):
         classifier_dropout=None,
         **kwargs
     ):
+        print(os.path.abspath(__file__), "BertConfig __init__")
         super().__init__(pad_token_id=pad_token_id, **kwargs)
 
         self.vocab_size = vocab_size
@@ -178,6 +180,7 @@ class BertConfig(PretrainedConfig):
 
 
 class BertOnnxConfig(OnnxConfig):
+    print(os.path.abspath(__file__), "BertOnnxConfig")
     @property
     def inputs(self) -> Mapping[str, Mapping[int, str]]:
         if self.task == "multiple-choice":
