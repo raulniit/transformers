@@ -397,7 +397,7 @@ class BertSelfOutput(nn.Module):
 class BertAttention(nn.Module):
     print(os.path.abspath(__file__), "BertAttention")
     def __init__(self, config, position_embedding_type=None):
-        print(os.path.abspath(__file__), "__init__")
+        print(os.path.abspath(__file__), "BertAttention __init__")
         super().__init__()
         self.self = BertSelfAttention(config, position_embedding_type=position_embedding_type)
         self.output = BertSelfOutput(config)
