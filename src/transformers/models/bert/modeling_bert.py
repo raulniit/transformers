@@ -183,14 +183,14 @@ class BertEmbeddings(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
-        self.form_embeddings = nn.Embedding(config.vocab_size_form, config.hidden_size, padding_idx=config.pad_token_id)
+        self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size - 12, padding_idx=config.pad_token_id)
+        self.form_embeddings = nn.Embedding(config.vocab_size_form, 12, padding_idx=config.pad_token_id)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
         self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
-        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = nn.LayerNorm(config.hidden_size , eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         # position_ids (1, len position emb) is contiguous in memory and exported when serialized
         self.position_embedding_type = getattr(config, "position_embedding_type", "absolute")
@@ -227,9 +227,9 @@ class BertEmbeddings(nn.Module):
                 token_type_ids = buffered_token_type_ids_expanded
             else:
                 token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
-
         if inputs_embeds is None:
-            inputs_embeds = torch.add(self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1]))
+            inputs_embeds = torch.cat((self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1])), dim = 2)
+
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
 
         embeddings = inputs_embeds + token_type_embeddings
