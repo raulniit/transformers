@@ -183,14 +183,14 @@ class BertEmbeddings(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size - 12, padding_idx=config.pad_token_id)
-        self.form_embeddings = nn.Embedding(config.vocab_size_form, 12, padding_idx=config.pad_token_id)
+        self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
+        self.form_embeddings = nn.Embedding(config.vocab_size_form, config.hidden_size, padding_idx=config.pad_token_id)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
         self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
-        self.LayerNorm = nn.LayerNorm(config.hidden_size , eps=config.layer_norm_eps)
+        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         # position_ids (1, len position emb) is contiguous in memory and exported when serialized
         self.position_embedding_type = getattr(config, "position_embedding_type", "absolute")
@@ -227,9 +227,9 @@ class BertEmbeddings(nn.Module):
                 token_type_ids = buffered_token_type_ids_expanded
             else:
                 token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
-        if inputs_embeds is None:
-            inputs_embeds = torch.cat((self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1])), dim = 2)
 
+        if inputs_embeds is None:
+            inputs_embeds = torch.add(self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1]))
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
 
         embeddings = inputs_embeds + token_type_embeddings
@@ -676,15 +676,18 @@ class BertPredictionHeadTransform(nn.Module):
 
 
 class BertLMPredictionHead(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, form):
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
 
         # The output weights are the same as the input embeddings, but there is
         # an output-only bias for each token.
-        self.decoder = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
-
-        self.bias = nn.Parameter(torch.zeros(config.vocab_size))
+        if form:
+            self.decoder = nn.Linear(config.hidden_size, config.vocab_size_form, bias=False)
+            self.bias = nn.Parameter(torch.zeros(config.vocab_size_form))
+        else:
+            self.decoder = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
+            self.bias = nn.Parameter(torch.zeros(config.vocab_size))
 
         # Need a link between the two variables so that the bias is correctly resized with `resize_token_embeddings`
         self.decoder.bias = self.bias
@@ -696,9 +699,9 @@ class BertLMPredictionHead(nn.Module):
 
 
 class BertOnlyMLMHead(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, form = False):
         super().__init__()
-        self.predictions = BertLMPredictionHead(config)
+        self.predictions = BertLMPredictionHead(config, form = form)
 
     def forward(self, sequence_output: torch.Tensor) -> torch.Tensor:
         prediction_scores = self.predictions(sequence_output)
@@ -1131,6 +1134,8 @@ class BertForPreTraining(BertPreTrainedModel):
         total_loss = None
         if labels is not None and next_sentence_label is not None:
             loss_fct = CrossEntropyLoss()
+            print(prediction_scores.view(-1, self.config.vocab_size))
+            print(labels.view(-1))
             masked_lm_loss = loss_fct(prediction_scores.view(-1, self.config.vocab_size), labels.view(-1))
             next_sentence_loss = loss_fct(seq_relationship_score.view(-1, 2), next_sentence_label.view(-1))
             total_loss = masked_lm_loss + next_sentence_loss
@@ -1301,16 +1306,17 @@ class BertForMaskedLM(BertPreTrainedModel):
             )
 
         self.bert = BertModel(config, add_pooling_layer=False)
-        self.cls = BertOnlyMLMHead(config)
+        self.cls_lemma = BertOnlyMLMHead(config)
+        self.cls_form = BertOnlyMLMHead(config, form = True)
 
         # Initialize weights and apply final processing
         self.post_init()
 
     def get_output_embeddings(self):
-        return self.cls.predictions.decoder
+        return self.cls_lemma.predictions.decoder
 
     def set_output_embeddings(self, new_embeddings):
-        self.cls.predictions.decoder = new_embeddings
+        self.cls_lemma.predictions.decoder = new_embeddings
 
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     @add_code_sample_docstrings(
@@ -1360,23 +1366,33 @@ class BertForMaskedLM(BertPreTrainedModel):
         )
 
         sequence_output = outputs[0]
-        prediction_scores = self.cls(sequence_output)
+        prediction_scores_lemma = self.cls_lemma(sequence_output)
+        prediction_scores_form = self.cls_form(sequence_output)
+
 
         masked_lm_loss = None
         if labels is not None:
             loss_fct = CrossEntropyLoss()  # -100 index = padding token
-            masked_lm_loss = loss_fct(prediction_scores.view(-1, self.config.vocab_size), labels.view(-1))
+            masked_lm_loss_lemma = loss_fct(prediction_scores_lemma.view(-1, self.config.vocab_size), labels[:, :, 0].view(-1))
+            masked_lm_loss_form = loss_fct(prediction_scores_form.view(-1, self.config.vocab_size_form), labels[:, :, 1].view(-1))
+            masked_lm_loss = masked_lm_loss_lemma + masked_lm_loss_form
 
         if not return_dict:
-            output = (prediction_scores,) + outputs[2:]
+            output = (prediction_scores_lemma,) + outputs[2:]
             return ((masked_lm_loss,) + output) if masked_lm_loss is not None else output
 
         return MaskedLMOutput(
             loss=masked_lm_loss,
-            logits=prediction_scores,
+            logits=prediction_scores_lemma,
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
+        ), MaskedLMOutput(
+        loss=masked_lm_loss,
+        logits=prediction_scores_form,
+        hidden_states=outputs.hidden_states,
+        attentions=outputs.attentions,
         )
+
 
     def prepare_inputs_for_generation(self, input_ids, attention_mask=None, **model_kwargs):
         input_shape = input_ids.shape
