@@ -114,6 +114,7 @@ def torch_default_data_collator(features: List[InputDataClass]) -> Dict[str, Any
     # Ensure that tensor is created with the correct type
     # (it should be automatically the case, but let's make sure of it.)
     if "label" in first and first["label"] is not None:
+        print(first)
         label = first["label"].item() if isinstance(first["label"], torch.Tensor) else first["label"]
         dtype = torch.long if isinstance(label, int) else torch.float
         batch["labels"] = torch.tensor([f["label"] for f in features], dtype=dtype)
@@ -747,7 +748,7 @@ class DataCollatorForLanguageModeling(DataCollatorMixin):
 
         labels = inputs.clone()
         # We sample a few tokens in each sequence for MLM training (with probability `self.mlm_probability`)
-        probability_matrix = torch.full(labels.shape, self.mlm_probability)
+        probability_matrix = torch.full(labels.shape[:-1], self.mlm_probability) # Muudetud
         if special_tokens_mask is None:
             special_tokens_mask = [
                 self.tokenizer.get_special_tokens_mask(val, already_has_special_tokens=True) for val in labels.tolist()
@@ -761,13 +762,15 @@ class DataCollatorForLanguageModeling(DataCollatorMixin):
         labels[~masked_indices] = -100  # We only compute loss on masked tokens
 
         # 80% of the time, we replace masked input tokens with tokenizer.mask_token ([MASK])
-        indices_replaced = torch.bernoulli(torch.full(labels.shape, 0.8)).bool() & masked_indices
-        inputs[indices_replaced] = self.tokenizer.convert_tokens_to_ids(self.tokenizer.mask_token)
+        indices_replaced = torch.bernoulli(torch.full(labels.shape[:-1], 0.8)).bool() & masked_indices # Muudetud
+        inputs[indices_replaced] = self.tokenizer.convert_tokens_to_ids(self.tokenizer.mask_token)[0] # Muudetud
 
         # 10% of the time, we replace masked input tokens with random word
-        indices_random = torch.bernoulli(torch.full(labels.shape, 0.5)).bool() & masked_indices & ~indices_replaced
-        random_words = torch.randint(len(self.tokenizer), labels.shape, dtype=torch.long)
-        inputs[indices_random] = random_words[indices_random]
+        indices_random = torch.bernoulli(torch.full(labels.shape[:-1], 0.5)).bool() & masked_indices & ~indices_replaced # Muudetud
+        random_words_lemma = torch.randint(len(self.tokenizer.vocab), labels.shape[:-1], dtype=torch.long) # Muudetud
+        random_words_form = torch.randint(len(self.tokenizer.vocab_form), labels.shape[:-1], dtype=torch.long) # Muudetud
+        inputs[indices_random][:, 0] = random_words_lemma[indices_random] # Muudetud
+        inputs[indices_random][:, 1] = random_words_form[indices_random] # Muudetud
 
         # The rest of the time (10% of the time) we keep the masked input tokens unchanged
         return inputs, labels

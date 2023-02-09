@@ -219,3 +219,6 @@ model_cards/korpus/estonian_nc17.vert.04
 model_cards/korpus/estonian_nc17.vert.03
 model_cards/korpus/estonian_nc17.vert.02
 model_cards/korpus/estonian_nc17.vert.01
+korpus/estonian_nc17.vert.19_lyh.tsv
+test_andmete_loomine_hpc.ipynb
+test_andmete_loomine.ipynb

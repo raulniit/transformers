@@ -181,8 +181,10 @@ def load_tf_weights_in_bert(model, config, tf_checkpoint_path):
 class BertEmbeddings(nn.Module):
     """Construct the embeddings from word, position and token_type embeddings."""
 
+    # Muudetud
     def __init__(self, config):
         super().__init__()
+        # Word embeddingu asemel tehtud lemma embedding ja form embedding
         self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
         self.form_embeddings = nn.Embedding(config.vocab_size_form, config.hidden_size, padding_idx=config.pad_token_id)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
@@ -228,6 +230,7 @@ class BertEmbeddings(nn.Module):
             else:
                 token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
 
+        # Embeddingud kokku liidetud
         if inputs_embeds is None:
             inputs_embeds = torch.add(self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1]))
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
@@ -676,13 +679,13 @@ class BertPredictionHeadTransform(nn.Module):
 
 
 class BertLMPredictionHead(nn.Module):
-    def __init__(self, config, form):
+    def __init__(self, config, form): # Muudetud
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
 
         # The output weights are the same as the input embeddings, but there is
         # an output-only bias for each token.
-        if form:
+        if form: # Muudetud
             self.decoder = nn.Linear(config.hidden_size, config.vocab_size_form, bias=False)
             self.bias = nn.Parameter(torch.zeros(config.vocab_size_form))
         else:
@@ -699,9 +702,9 @@ class BertLMPredictionHead(nn.Module):
 
 
 class BertOnlyMLMHead(nn.Module):
-    def __init__(self, config, form = False):
+    def __init__(self, config, form = False): # Muudetud
         super().__init__()
-        self.predictions = BertLMPredictionHead(config, form = form)
+        self.predictions = BertLMPredictionHead(config, form = form) # Muudetud
 
     def forward(self, sequence_output: torch.Tensor) -> torch.Tensor:
         prediction_scores = self.predictions(sequence_output)
@@ -1307,7 +1310,7 @@ class BertForMaskedLM(BertPreTrainedModel):
 
         self.bert = BertModel(config, add_pooling_layer=False)
         self.cls_lemma = BertOnlyMLMHead(config)
-        self.cls_form = BertOnlyMLMHead(config, form = True)
+        self.cls_form = BertOnlyMLMHead(config, form = True) # Lisatud
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -1366,31 +1369,26 @@ class BertForMaskedLM(BertPreTrainedModel):
         )
 
         sequence_output = outputs[0]
-        prediction_scores_lemma = self.cls_lemma(sequence_output)
-        prediction_scores_form = self.cls_form(sequence_output)
+        prediction_scores_lemma = self.cls_lemma(sequence_output) # Muudetud
+        prediction_scores_form = self.cls_form(sequence_output) # Lisatud
 
 
         masked_lm_loss = None
         if labels is not None:
             loss_fct = CrossEntropyLoss()  # -100 index = padding token
-            masked_lm_loss_lemma = loss_fct(prediction_scores_lemma.view(-1, self.config.vocab_size), labels[:, :, 0].view(-1))
-            masked_lm_loss_form = loss_fct(prediction_scores_form.view(-1, self.config.vocab_size_form), labels[:, :, 1].view(-1))
-            masked_lm_loss = masked_lm_loss_lemma + masked_lm_loss_form
+            masked_lm_loss_lemma = loss_fct(prediction_scores_lemma.view(-1, self.config.vocab_size), labels[:, :, 0].view(-1)) # Muudetud
+            masked_lm_loss_form = loss_fct(prediction_scores_form.view(-1, self.config.vocab_size_form), labels[:, :, 1].view(-1)) # Lisatud
+            masked_lm_loss = masked_lm_loss_lemma + masked_lm_loss_form # Lisatud
 
         if not return_dict:
-            output = (prediction_scores_lemma,) + outputs[2:]
+            output = ((prediction_scores_lemma, prediction_scores_form),) + outputs[2:]
             return ((masked_lm_loss,) + output) if masked_lm_loss is not None else output
 
         return MaskedLMOutput(
             loss=masked_lm_loss,
-            logits=prediction_scores_lemma,
+            logits=(prediction_scores_lemma, prediction_scores_form),
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
-        ), MaskedLMOutput(
-        loss=masked_lm_loss,
-        logits=prediction_scores_form,
-        hidden_states=outputs.hidden_states,
-        attentions=outputs.attentions,
         )
 
 

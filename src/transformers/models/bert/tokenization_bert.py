@@ -19,6 +19,8 @@ import collections
 import os
 import unicodedata
 from typing import List, Optional, Tuple
+import random
+from estnltk import Text
 
 from ...tokenization_utils import PreTrainedTokenizer, _is_control, _is_punctuation, _is_whitespace
 from ...utils import logging
@@ -184,7 +186,7 @@ class BertTokenizer(PreTrainedTokenizer):
     def __init__(
         self,
         vocab_file,
-        vocab_file_form = None,
+        vocab_file_form = None, # Lisatud
         do_lower_case=True,
         do_basic_tokenize=True,
         never_split=None,
@@ -217,11 +219,15 @@ class BertTokenizer(PreTrainedTokenizer):
                 " model use `tokenizer = BertTokenizer.from_pretrained(PRETRAINED_MODEL_NAME)`"
             )
         self.vocab = load_vocab(vocab_file)
+
+        # Lisatud
         if vocab_file_form is not None:
             self.vocab_form = load_vocab(vocab_file_form)
         else:
             self.vocab_form = None
+
         self.ids_to_tokens = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab.items()])
+        # Lisatud
         self.ids_to_tokens_form = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab_form.items()])
         self.do_basic_tokenize = do_basic_tokenize
         if do_basic_tokenize:
@@ -241,6 +247,7 @@ class BertTokenizer(PreTrainedTokenizer):
     def vocab_size(self):
         return len(self.vocab)
 
+    # Lisatud
     @property
     def vocab_size_form(self):
         return len(self.vocab_form)
@@ -248,29 +255,37 @@ class BertTokenizer(PreTrainedTokenizer):
     def get_vocab(self):
         return dict(self.vocab, **self.added_tokens_encoder)
 
+    # Lisatud
     def get_vocab_form(self):
         return dict(self.vocab_form, **self.added_tokens_encoder)
 
-    # def _tokenize(self, text):
-    #     split_tokens = []
-    #     if self.do_basic_tokenize:
-    #         for token in self.basic_tokenizer.tokenize(text, never_split=self.all_special_tokens):
-    #
-    #             # If the token is part of the never_split set
-    #             if token in self.basic_tokenizer.never_split:
-    #                 split_tokens.append(token)
-    #             else:
-    #                 split_tokens += self.wordpiece_tokenizer.tokenize(token)
-    #     else:
-    #         split_tokens = self.wordpiece_tokenizer.tokenize(text)
-    #     return split_tokens
+    # Muudetud
+    def _tokenize(self, text, **kwargs):
+        """
+        Tokeniseerib lause iga sõna lemmaks ja vormiks, st. sõna -> (lemma, vorm)
+        Implementatsioon eeldab, et special tokenid on kujul [MASK], [CLS] jne.
+        """
+        special_tokens = [special.strip("[]") for special in list(self.all_special_tokens)]
+        tekst = Text(text).tag_layer("morph_analysis")
+        tokens = []
+        for i, span in enumerate(tekst.morph_analysis):
+            if span["text"][
+                0] == "]":  # Kuna EstNLTK eraldab [MASK] -> "[", "MASK", "]", siis need vaja tagasi kokku panna
+                if i - 2 > 0:
+                    special = tekst.morph_analysis[i - 1]["text"][0]
+                    if special in special_tokens and tekst.morph_analysis[i - 2]["text"][0] == "[":
+                        tokens = tokens[:(len(tokens) - 2)]
+                        tokens.append(("[" + special + "]", "[" + special + "]"))
+            else:  # Kui leiti mitu lemmat ja vormi, siis tagastab juhusliku
+                ind = random.randint(0, len(span["lemma"]) - 1)
+                tokens.append((span["lemma"][ind], span["form"][ind]))
 
-    def _tokenize(self, text):
-        return PreTrainedTokenizer._tokenize(self, text)
+        return tokens
 
+    # Muudetud
     def _convert_token_to_id(self, token):
         """Converts a token (str) in an id using the vocab."""
-        # return self.vocab.get(token, self.vocab.get(self.unk_token))
+        # Kui vocab_form on olemas, siis loeb vormi ID sealt, vastasel juhul loeb vormi ID tavalisest (lemma) vocab failist
         if self.vocab_form is not None:
             if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
                 return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab_form.get(token, self.vocab_form.get(self.unk_token)))
@@ -280,11 +295,10 @@ class BertTokenizer(PreTrainedTokenizer):
                 return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab.get(token, self.vocab.get(self.unk_token)))
             return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
 
-    def _convert_id_to_token(self, index, return_form: bool = False):
+    # Muudetud
+    def _convert_id_to_token(self, index):
         """Converts an index (integer) in a token (str) using the vocab."""
-        if return_form:
-            return self.ids_to_tokens_form.get(index, self.unk_token)
-        return self.ids_to_tokens.get(index, self.unk_token)
+        return (self.ids_to_tokens.get(index, self.unk_token), self.ids_to_tokens_form.get(index, self.unk_token))
 
     def convert_tokens_to_string(self, tokens):
         """Converts a sequence of tokens (string) in a single string."""
