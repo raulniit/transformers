@@ -181,12 +181,17 @@ def load_tf_weights_in_bert(model, config, tf_checkpoint_path):
 class BertEmbeddings(nn.Module):
     """Construct the embeddings from word, position and token_type embeddings."""
 
+    # Muudetud
     def __init__(self, config):
         super().__init__()
-        self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
-        self.form_embeddings = nn.Embedding(config.vocab_size_form, config.hidden_size, padding_idx=config.pad_token_id)
+        # Word embeddingu asemel tehtud lemma embedding ja form embedding
+        self.lemma_embeddings = nn.Embedding(config.vocab_size, config.hidden_size - config.hidden_size_form, padding_idx=config.pad_token_id)
+        self.form_embeddings = nn.Embedding(config.vocab_size_form, config.hidden_size_form, padding_idx=config.pad_token_id)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
         self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
+        self.binary0_embeddings = nn.Embedding(2, config.hidden_size)
+        self.binary1_embeddings = nn.Embedding(2, config.hidden_size)
+        self.binary2_embeddings = nn.Embedding(2, config.hidden_size)
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
@@ -204,6 +209,7 @@ class BertEmbeddings(nn.Module):
         input_ids: Optional[torch.LongTensor] = None,
         token_type_ids: Optional[torch.LongTensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
+        binary_channels: Optional[torch.LongTensor] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
         past_key_values_length: int = 0,
     ) -> torch.Tensor:
@@ -228,14 +234,19 @@ class BertEmbeddings(nn.Module):
             else:
                 token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
 
+        # Embeddingud
         if inputs_embeds is None:
-            inputs_embeds = torch.add(self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1]))
+            inputs_embeds = torch.cat((self.lemma_embeddings(input_ids[:,:,0]), self.form_embeddings(input_ids[:,:,1])), axis = 2)
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
-
         embeddings = inputs_embeds + token_type_embeddings
         if self.position_embedding_type == "absolute":
             position_embeddings = self.position_embeddings(position_ids)
             embeddings += position_embeddings
+        if binary_channels is not None:
+            binary0_embeddings = self.binary0_embeddings(binary_channels[:, :, 0])
+            binary1_embeddings = self.binary0_embeddings(binary_channels[:, :, 1])
+            binary2_embeddings = self.binary0_embeddings(binary_channels[:, :, 2])
+            embeddings = embeddings + binary0_embeddings + binary1_embeddings + binary2_embeddings
         embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)
         return embeddings
@@ -676,15 +687,18 @@ class BertPredictionHeadTransform(nn.Module):
 
 
 class BertLMPredictionHead(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, form): # Muudetud
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
 
         # The output weights are the same as the input embeddings, but there is
         # an output-only bias for each token.
-        self.decoder = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
-
-        self.bias = nn.Parameter(torch.zeros(config.vocab_size))
+        #if form: # Muudetud
+        #    self.decoder = nn.Linear(config.hidden_size, config.vocab_size_form, bias=False)
+        #    self.bias = nn.Parameter(torch.zeros(config.vocab_size_form))
+        #else:
+        self.decoder = nn.Linear(config.hidden_size, config.vocab_size + config.vocab_size_form, bias=False)
+        self.bias = nn.Parameter(torch.zeros(config.vocab_size + config.vocab_size_form))
 
         # Need a link between the two variables so that the bias is correctly resized with `resize_token_embeddings`
         self.decoder.bias = self.bias
@@ -696,9 +710,9 @@ class BertLMPredictionHead(nn.Module):
 
 
 class BertOnlyMLMHead(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, form = False): # Muudetud
         super().__init__()
-        self.predictions = BertLMPredictionHead(config)
+        self.predictions = BertLMPredictionHead(config, form = form) # Muudetud
 
     def forward(self, sequence_output: torch.Tensor) -> torch.Tensor:
         prediction_scores = self.predictions(sequence_output)
@@ -916,6 +930,7 @@ class BertModel(BertPreTrainedModel):
         attention_mask: Optional[torch.Tensor] = None,
         token_type_ids: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.Tensor] = None,
+        binary_channels: Optional[torch.Tensor] = None,
         head_mask: Optional[torch.Tensor] = None,
         inputs_embeds: Optional[torch.Tensor] = None,
         encoder_hidden_states: Optional[torch.Tensor] = None,
@@ -1009,6 +1024,7 @@ class BertModel(BertPreTrainedModel):
             input_ids=input_ids,
             position_ids=position_ids,
             token_type_ids=token_type_ids,
+            binary_channels = binary_channels, # Lisatud
             inputs_embeds=inputs_embeds,
             past_key_values_length=past_key_values_length,
         )
@@ -1301,16 +1317,17 @@ class BertForMaskedLM(BertPreTrainedModel):
             )
 
         self.bert = BertModel(config, add_pooling_layer=False)
-        self.cls = BertOnlyMLMHead(config)
+        self.cls_lemma = BertOnlyMLMHead(config)
+        #self.cls_form = BertOnlyMLMHead(config, form = True) # Lisatud
 
         # Initialize weights and apply final processing
         self.post_init()
 
     def get_output_embeddings(self):
-        return self.cls.predictions.decoder
+        return self.cls_lemma.predictions.decoder
 
     def set_output_embeddings(self, new_embeddings):
-        self.cls.predictions.decoder = new_embeddings
+        self.cls_lemma.predictions.decoder = new_embeddings
 
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     @add_code_sample_docstrings(
@@ -1326,6 +1343,7 @@ class BertForMaskedLM(BertPreTrainedModel):
         input_ids: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         token_type_ids: Optional[torch.Tensor] = None,
+        binary_channels: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.Tensor] = None,
         head_mask: Optional[torch.Tensor] = None,
         inputs_embeds: Optional[torch.Tensor] = None,
@@ -1349,6 +1367,7 @@ class BertForMaskedLM(BertPreTrainedModel):
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
+            binary_channels = binary_channels,
             position_ids=position_ids,
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
@@ -1360,23 +1379,29 @@ class BertForMaskedLM(BertPreTrainedModel):
         )
 
         sequence_output = outputs[0]
-        prediction_scores = self.cls(sequence_output)
+        prediction_scores = self.cls_lemma(sequence_output) # Muudetud
+        prediction_scores_lemma = prediction_scores[:, :, :self.config.vocab_size] # Lisatud
+        prediction_scores_form = prediction_scores[:, :, self.config.vocab_size:] # Lisatud
 
         masked_lm_loss = None
         if labels is not None:
-            loss_fct = CrossEntropyLoss()  # -100 index = padding token
-            masked_lm_loss = loss_fct(prediction_scores.view(-1, self.config.vocab_size), labels.view(-1))
+            loss_fct_lemma = CrossEntropyLoss(weight=torch.cat((torch.tensor([10, 10]), torch.ones(self.config.vocab_size-2))))
+            loss_fct_form = CrossEntropyLoss(weight=torch.cat((torch.tensor([10, 10]), torch.ones(self.config.vocab_size_form-2))))  # -100 index = padding token
+            masked_lm_loss_lemma = loss_fct_lemma(prediction_scores_lemma.view(-1, self.config.vocab_size), labels[:, :, 0].view(-1)) # Muudetud
+            masked_lm_loss_form = loss_fct_form(prediction_scores_form.view(-1, self.config.vocab_size_form), labels[:, :, 1].view(-1)) # Lisatud
+            masked_lm_loss = masked_lm_loss_lemma + masked_lm_loss_form # Lisatud
 
         if not return_dict:
-            output = (prediction_scores,) + outputs[2:]
+            output = ((prediction_scores_lemma, prediction_scores_form),) + outputs[2:]
             return ((masked_lm_loss,) + output) if masked_lm_loss is not None else output
 
         return MaskedLMOutput(
             loss=masked_lm_loss,
-            logits=prediction_scores,
+            logits=(prediction_scores_lemma, prediction_scores_form),
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )
+
 
     def prepare_inputs_for_generation(self, input_ids, attention_mask=None, **model_kwargs):
         input_shape = input_ids.shape
@@ -1534,6 +1559,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
         input_ids: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         token_type_ids: Optional[torch.Tensor] = None,
+        binary_channels: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.Tensor] = None,
         head_mask: Optional[torch.Tensor] = None,
         inputs_embeds: Optional[torch.Tensor] = None,
@@ -1554,6 +1580,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
+            binary_channels=binary_channels,
             position_ids=position_ids,
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
@@ -1735,6 +1762,7 @@ class BertForTokenClassification(BertPreTrainedModel):
         input_ids: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         token_type_ids: Optional[torch.Tensor] = None,
+        binary_channels: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.Tensor] = None,
         head_mask: Optional[torch.Tensor] = None,
         inputs_embeds: Optional[torch.Tensor] = None,
@@ -1753,6 +1781,7 @@ class BertForTokenClassification(BertPreTrainedModel):
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
+            binary_channels=binary_channels,
             position_ids=position_ids,
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,

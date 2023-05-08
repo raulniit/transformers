@@ -138,16 +138,17 @@ class BertConfig(PretrainedConfig):
 
     def __init__(
         self,
-        vocab_size=30522,
-        vocab_size_form = 114,
+        vocab_size=50005,
+        vocab_size_form = 111, # Lisatud
         hidden_size=768,
+        hidden_size_form = 48, # Lisatud
         num_hidden_layers=12,
         num_attention_heads=12,
         intermediate_size=3072,
         hidden_act="gelu",
         hidden_dropout_prob=0.1,
         attention_probs_dropout_prob=0.1,
-        max_position_embeddings=512,
+        max_position_embeddings=128,
         type_vocab_size=2,
         initializer_range=0.02,
         layer_norm_eps=1e-12,
@@ -162,6 +163,7 @@ class BertConfig(PretrainedConfig):
         self.vocab_size = vocab_size
         self.vocab_size_form = vocab_size_form
         self.hidden_size = hidden_size
+        self.hidden_size_form = hidden_size_form
         self.num_hidden_layers = num_hidden_layers
         self.num_attention_heads = num_attention_heads
         self.hidden_act = hidden_act

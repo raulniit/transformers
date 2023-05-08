@@ -28,6 +28,7 @@ from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Sequence, Tuple, Union
+import torch
 
 import numpy as np
 from packaging import version
@@ -1464,7 +1465,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
 
     # first name has to correspond to main model input name
     # to make sure `tokenizer.pad(...)` works correctly
-    model_input_names: List[str] = ["input_ids", "token_type_ids", "attention_mask"]
+    model_input_names: List[str] = ["input_ids", "token_type_ids", "attention_mask", "binary_channels"] # Muudetud
     padding_side: str = "right"
     truncation_side: str = "right"
     slow_tokenizer_class = None
@@ -2429,6 +2430,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -2470,6 +2472,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             pad_to_multiple_of=pad_to_multiple_of,
             return_tensors=return_tensors,
             return_token_type_ids=return_token_type_ids,
+            return_binary_channels=return_binary_channels,  # Lisatud
             return_attention_mask=return_attention_mask,
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
@@ -2513,6 +2516,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -2582,6 +2586,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 pad_to_multiple_of=pad_to_multiple_of,
                 return_tensors=return_tensors,
                 return_token_type_ids=return_token_type_ids,
+                return_binary_channels=return_binary_channels,  # Lisatud
                 return_attention_mask=return_attention_mask,
                 return_overflowing_tokens=return_overflowing_tokens,
                 return_special_tokens_mask=return_special_tokens_mask,
@@ -2603,6 +2608,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 pad_to_multiple_of=pad_to_multiple_of,
                 return_tensors=return_tensors,
                 return_token_type_ids=return_token_type_ids,
+                return_binary_channels=return_binary_channels,  # Lisatud
                 return_attention_mask=return_attention_mask,
                 return_overflowing_tokens=return_overflowing_tokens,
                 return_special_tokens_mask=return_special_tokens_mask,
@@ -2626,6 +2632,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -2676,6 +2683,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             pad_to_multiple_of=pad_to_multiple_of,
             return_tensors=return_tensors,
             return_token_type_ids=return_token_type_ids,
+            return_binary_channels=return_binary_channels,  # Lisatud
             return_attention_mask=return_attention_mask,
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
@@ -2729,6 +2737,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
         return_attention_mask: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
@@ -2773,6 +2782,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             pad_to_multiple_of=pad_to_multiple_of,
             return_tensors=return_tensors,
             return_token_type_ids=return_token_type_ids,
+            return_binary_channels=return_binary_channels,  # Lisatud
             return_attention_mask=return_attention_mask,
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
@@ -2901,6 +2911,8 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
 
         # The model's main input name, usually `input_ids`, has be passed for padding
         if self.model_input_names[0] not in encoded_inputs:
+            print(self.model_input_names)
+            print(encoded_inputs)
             raise ValueError(
                 "You should supply an encoding or a list of encodings to this method "
                 f"that includes {self.model_input_names[0]}, but you provided {list(encoded_inputs.keys())}"
@@ -2947,7 +2959,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         )
 
         required_input = encoded_inputs[self.model_input_names[0]]
-        if required_input and not isinstance(required_input[0], (list, tuple)):
+        if required_input and not isinstance(required_input[0], (list)): # Muudetud
             encoded_inputs = self._pad(
                 encoded_inputs,
                 max_length=max_length,
@@ -3037,6 +3049,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None, # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -3099,6 +3112,8 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             return_token_type_ids = "token_type_ids" in self.model_input_names
         if return_attention_mask is None:
             return_attention_mask = "attention_mask" in self.model_input_names
+        if return_binary_channels is None:
+            return_binary_channels = "binary_channels" in self.model_input_names
 
         encoded_inputs = {}
 
@@ -3120,6 +3135,9 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             encoded_inputs["overflowing_tokens"] = overflowing_tokens
             encoded_inputs["num_truncated_tokens"] = total_len - max_length
 
+        ids_binary = [x[2] for x in ids] # Lisatud
+        ids = [x[0:2] for x in ids] # Lisatud
+
         # Add special tokens
         if add_special_tokens:
             sequence = self.build_inputs_with_special_tokens(ids, pair_ids)
@@ -3132,6 +3150,8 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         encoded_inputs["input_ids"] = sequence
         if return_token_type_ids:
             encoded_inputs["token_type_ids"] = token_type_ids
+        if return_binary_channels: # Lisatud
+            encoded_inputs["binary_channels"] = self.create_binary_channels(ids_binary, pair_ids) # Lisatud
         if return_special_tokens_mask:
             if add_special_tokens:
                 encoded_inputs["special_tokens_mask"] = self.get_special_tokens_mask(ids, pair_ids)
@@ -3334,11 +3354,14 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
 
             if self.padding_side == "right":
                 if return_attention_mask:
-
                     encoded_inputs["attention_mask"] = encoded_inputs["attention_mask"] + [0] * difference
                 if "token_type_ids" in encoded_inputs:
                     encoded_inputs["token_type_ids"] = (
                         encoded_inputs["token_type_ids"] + [self.pad_token_type_id] * difference
+                    )
+                if "binary_channels" in encoded_inputs: # Lisatud
+                    encoded_inputs["binary_channels"] = (
+                            encoded_inputs["binary_channels"] + [(0,)*8] * difference
                     )
                 if "special_tokens_mask" in encoded_inputs:
                     encoded_inputs["special_tokens_mask"] = encoded_inputs["special_tokens_mask"] + [1] * difference
@@ -3351,6 +3374,10 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
                 if "token_type_ids" in encoded_inputs:
                     encoded_inputs["token_type_ids"] = [self.pad_token_type_id] * difference + encoded_inputs[
                         "token_type_ids"
+                    ]
+                if "binary_channels" in encoded_inputs: # Lisatud
+                    encoded_inputs["binary_channels"] = [(0,)*8] * difference + encoded_inputs[
+                        "binary_channels"
                     ]
                 if "special_tokens_mask" in encoded_inputs:
                     encoded_inputs["special_tokens_mask"] = [1] * difference + encoded_inputs["special_tokens_mask"]
@@ -3478,9 +3505,10 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
             "to get the special tokens mask in any tokenizer. "
         )
 
-        all_special_ids = self.all_special_ids  # cache the property
+        all_special_ids = [x[0] for x in self.all_special_ids]  # Muudetud
 
-        special_tokens_mask = [1 if token in all_special_ids else 0 for token in token_ids_0]
+        special_tokens_mask = [1 if token[0] in all_special_ids else 0 for token in token_ids_0] # Muudetud
+
 
         return special_tokens_mask
 

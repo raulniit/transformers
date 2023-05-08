@@ -20,7 +20,6 @@ import bisect
 import itertools
 import re
 import unicodedata
-import random
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Tuple, Union, overload
 
@@ -40,7 +39,7 @@ from .tokenization_utils_base import (
     TruncationStrategy,
 )
 from .utils import PaddingStrategy, TensorType, add_end_docstrings, logging
-from estnltk import Text
+
 
 logger = logging.get_logger(__name__)
 
@@ -63,17 +62,13 @@ class Trie:
         """
         Passes over every char (utf-8 char) on word and recursively adds it to the internal `data` trie representation.
         The special key `""` is used to represent termination.
-
         This function is idempotent, adding twice the same word will leave the trie unchanged
-
         Example:
-
         ```python
         >>> trie = Trie()
         >>> trie.add("Hello 友達")
         >>> trie.data
         {"H": {"e": {"l": {"l": {"o": {" ": {"友": {"達": {"": 1}}}}}}}}}
-
         >>> trie.add("Hello")
         >>> trie.data
         {"H": {"e": {"l": {"l": {"o": {"": 1, " ": {"友": {"達": {"": 1}}}}}}}}}
@@ -92,16 +87,12 @@ class Trie:
         """
         Will look for the words added to the trie within `text`. Output is the original string splitted along the
         boundaries of the words found.
-
         This trie will match the longest possible word first !
-
         Example:
-
         ```python
         >>> trie = Trie()
         >>> trie.split("[CLS] This is a extra_id_100")
         ["[CLS] This is a extra_id_100"]
-
         >>> trie.add("[CLS]")
         >>> trie.add("extra_id_1")
         >>> trie.add("extra_id_100")
@@ -334,12 +325,9 @@ def _insert_one_token_to_ordered_list(token_list: List[str], new_token: str):
 class PreTrainedTokenizer(PreTrainedTokenizerBase):
     """
     Base class for all slow tokenizers.
-
     Inherits from [`~tokenization_utils_base.PreTrainedTokenizerBase`].
-
     Handle all the shared methods for tokenization and special tokens as well as methods downloading/caching/loading
     pretrained tokenizers as well as adding tokens to the vocabulary.
-
     This class also contain the added tokens in a unified way on top of all tokenizers so we don't have to handle the
     specific vocabulary augmentation methods of the various underlying dictionary structures (BPE, sentencepiece...).
     """
@@ -370,7 +358,6 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     def get_added_vocab(self) -> Dict[str, int]:
         """
         Returns the added tokens in the vocabulary as a dictionary of token to index.
-
         Returns:
             `Dict[str, int]`: The added tokens.
         """
@@ -386,24 +373,19 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         """
         Add a list of new tokens to the tokenizer class. If the new tokens are not in the vocabulary, they are added to
         it with indices starting from length of the current vocabulary.
-
         Args:
             new_tokens (`List[str]`or `List[tokenizers.AddedToken]`):
                 Token(s) to add in vocabulary. A token is only added if it's not already in the vocabulary (tested by
                 checking if the tokenizer assign the index of the `unk_token` to them).
             special_tokens (`bool`, *optional*, defaults to `False`):
                 Whether or not the tokens should be added as special tokens.
-
         Returns:
             `int`: The number of tokens actually added to the vocabulary.
-
         Examples:
-
         ```python
         # Let's see how to increase the vocabulary of Bert model and tokenizer
         tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         model = BertModel.from_pretrained("bert-base-uncased")
-
         num_added_toks = tokenizer.add_tokens(["new_tok1", "my_new-tok2"])
         print("We have added", num_added_toks, "tokens")
         # Note: resize_token_embeddings expects to receive the full size of the new vocabulary, i.e. the length of the tokenizer.
@@ -459,19 +441,14 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     def num_special_tokens_to_add(self, pair: bool = False) -> int:
         """
         Returns the number of added tokens when encoding a sequence with special tokens.
-
         <Tip>
-
         This encodes a dummy input and checks the number of added tokens, and is therefore not efficient. Do not put
         this inside your training loop.
-
         </Tip>
-
         Args:
             pair (`bool`, *optional*, defaults to `False`):
                 Whether the number of added tokens should be computed in the case of a sequence pair or a single
                 sequence.
-
         Returns:
             `int`: Number of special tokens added to sequences.
         """
@@ -482,16 +459,13 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     def tokenize(self, text: TextInput, **kwargs) -> List[str]:
         """
         Converts a string in a sequence of tokens, using the tokenizer.
-
         Split in words for word-based vocabulary or sub-words for sub-word-based vocabularies
         (BPE/SentencePieces/WordPieces). Takes care of added tokens.
-
         Args:
             text (`str`):
                 The sequence to be encoded.
             **kwargs (additional keyword arguments):
                 Passed along to the model-specific `prepare_for_tokenization` preprocessing method.
-
         Returns:
             `List[str]`: The list of tokens.
         """
@@ -502,8 +476,8 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
 
         text, kwargs = self.prepare_for_tokenization(text, **kwargs)
 
-        if kwargs:
-            logger.warning(f"Keyword arguments {kwargs} not recognized.")
+        #if kwargs:
+        #    logger.warning(f"Keyword arguments {kwargs} not recognized.") # Muudetud
 
         # TODO: should this be in the base class?
         if hasattr(self, "do_lower_case") and self.do_lower_case:
@@ -545,7 +519,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             if token in no_split_token:
                 tokenized_text.append(token)
             else:
-                tokenized_text.extend(self._tokenize(token))
+                tokenized_text.extend(self._tokenize(token, **kwargs)) # Muudetud
         # ["This", " is", " something", "<special_token_1>", "else"]
         return tokenized_text
 
@@ -553,39 +527,16 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         """
         Converts a string in a sequence of tokens (string), using the tokenizer. Split in words for word-based
         vocabulary or sub-words for sub-word-based vocabularies (BPE/SentencePieces/WordPieces).
-
         Do NOT take care of added tokens.
         """
-        special_tokens = [special.strip("[]") for special in list(self.all_special_tokens)]
-        tekst = Text(text).tag_layer("morph_analysis")
-        tokens = []
-        for i, span in enumerate(tekst.morph_analysis):
-            if span["text"][0] == "]":
-                if i - 2  > 0:
-                    special = tekst.morph_analysis[i-1]["text"][0]
-                    if special in special_tokens and tekst.morph_analysis[i-2]["text"][0] == "[":
-                        tokens = tokens[:(len(tokens)-2)]
-                        tokens.append(("[" + special + "]", "[" + special + "]"))
-            else:
-                ind = random.randint(0, len(span["lemma"])-1)
-                tokens.append((span["lemma"][ind], span["form"][ind]))
-
-
-            # self.add_tokens(new_tokens = [tekst.lemma[i][0], tekst.form[i][0]])
-            #if span["lemma"][0] not in self.added_tokens_encoder.keys():
-                #self.added_tokens_encoder[tekst.lemma[i][0]] = i
-            #if span["form"][0] not in self.added_tokens_encoder.keys():
-                #self.added_tokens_encoder[tekst.form[i][0]] = len(tekst.lemma) + i
-        return tokens
+        raise NotImplementedError
 
     def convert_tokens_to_ids(self, tokens: Union[str, List[str]]) -> Union[int, List[int]]:
         """
         Converts a token string (or a sequence of tokens) in a single integer id (or a sequence of ids), using the
         vocabulary.
-
         Args:
             tokens (`str` or `List[str]`): One or several token(s) to convert to token id(s).
-
         Returns:
             `int` or `List[int]`: The token id or list of token ids.
         """
@@ -609,7 +560,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return self._convert_token_to_id(token)
 
     def _convert_token_to_id(self, token):
-        return (self.added_tokens_encoder[token[0]], self.unk_token)
+        raise NotImplementedError
 
     def _encode_plus(
         self,
@@ -624,13 +575,14 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs
+        **kwargs,
     ) -> BatchEncoding:
         def get_input_ids(text):
             if isinstance(text, str):
@@ -683,6 +635,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             prepend_batch_axis=True,
             return_attention_mask=return_attention_mask,
             return_token_type_ids=return_token_type_ids,
+            return_binary_channels=return_binary_channels,  # Lisatud
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
             return_length=return_length,
@@ -708,13 +661,14 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs
+        **kwargs,
     ) -> BatchEncoding:
         def get_input_ids(text):
             if isinstance(text, str):
@@ -765,6 +719,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             pad_to_multiple_of=pad_to_multiple_of,
             return_attention_mask=return_attention_mask,
             return_token_type_ids=return_token_type_ids,
+            return_binary_channels=return_binary_channels,  # Lisatud
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
             return_length=return_length,
@@ -786,6 +741,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[str] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -796,7 +752,6 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         Prepares a sequence of input id, or a pair of sequences of inputs ids so that it can be used by the model. It
         adds special tokens, truncates sequences if overflowing while taking into account the special tokens and
         manages a moving window (with user defined stride) for overflowing tokens
-
         Args:
             batch_ids_pairs: list of tokenized input ids or input ids pairs
         """
@@ -814,6 +769,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 pad_to_multiple_of=None,  # we pad in batch afterward
                 return_attention_mask=False,  # we pad in batch afterward
                 return_token_type_ids=return_token_type_ids,
+                return_binary_channels = return_binary_channels, # Lisatud
                 return_overflowing_tokens=return_overflowing_tokens,
                 return_special_tokens_mask=return_special_tokens_mask,
                 return_length=return_length,
@@ -844,10 +800,8 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     ) -> Tuple[str, Dict[str, Any]]:
         """
         Performs any necessary transformations before tokenization.
-
         This method should pop the arguments from kwargs and return the remaining `kwargs` as well. We test the
         `kwargs` at the end of the encoding process to be sure all the arguments have been used.
-
         Args:
             text (`str`):
                 The text to prepare.
@@ -857,7 +811,6 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 which it will tokenize. This is useful for NER or token classification.
             kwargs:
                 Keyword arguments to use for the tokenization.
-
         Returns:
             `Tuple[str, Dict[str, Any]]`: The prepared text and the unused kwargs.
         """
@@ -869,7 +822,6 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         """
         Retrieves sequence ids from a token list that has no special tokens added. This method is called when adding
         special tokens using the tokenizer `prepare_for_model` or `encode_plus` methods.
-
         Args:
             token_ids_0 (`List[int]`):
                 List of ids of the first sequence.
@@ -877,7 +829,6 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 List of ids of the second sequence.
             already_has_special_tokens (`bool`, *optional*, defaults to `False`):
                 Whether or not the token list is already formatted with special tokens for the model.
-
         Returns:
             A list of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.
         """
@@ -902,18 +853,16 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         ...
 
     def convert_ids_to_tokens(
-        self, ids: Union[int, List[int]], skip_special_tokens: bool = False, return_form: bool = False
+        self, ids: Union[int, List[int]], skip_special_tokens: bool = False
     ) -> Union[str, List[str]]:
         """
         Converts a single index or a sequence of indices in a token or a sequence of tokens, using the vocabulary and
         added tokens.
-
         Args:
             ids (`int` or `List[int]`):
                 The token id (or token ids) to convert to tokens.
             skip_special_tokens (`bool`, *optional*, defaults to `False`):
                 Whether or not to remove special tokens in the decoding.
-
         Returns:
             `str` or `List[str]`: The decoded token(s).
         """
@@ -921,7 +870,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             if ids in self.added_tokens_decoder:
                 return self.added_tokens_decoder[ids]
             else:
-                return self._convert_id_to_token(ids, return_form = return_form)
+                return self._convert_id_to_token(ids)
         tokens = []
         for index in ids:
             index = int(index)
@@ -933,7 +882,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 tokens.append(self._convert_id_to_token(index))
         return tokens
 
-    def _convert_id_to_token(self, index: int, return_form: bool = False) -> str:
+    def _convert_id_to_token(self, index: int) -> str:
         raise NotImplementedError
 
     def convert_tokens_to_string(self, tokens: List[str]) -> str:
@@ -942,15 +891,14 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
     def _decode(
         self,
         token_ids: List[int],
-        return_form: bool = False,
         skip_special_tokens: bool = False,
         clean_up_tokenization_spaces: bool = True,
         spaces_between_special_tokens: bool = True,
-        **kwargs
+        **kwargs,
     ) -> str:
         self._decode_use_source_tokenizer = kwargs.pop("use_source_tokenizer", False)
 
-        filtered_tokens = self.convert_ids_to_tokens(token_ids, skip_special_tokens=skip_special_tokens, return_form = return_form)
+        filtered_tokens = self.convert_ids_to_tokens(token_ids, skip_special_tokens=skip_special_tokens)
 
         # To avoid mixing byte-level and unicode for byte-level BPT
         # we need to build string separately for added tokens and byte-level tokens
