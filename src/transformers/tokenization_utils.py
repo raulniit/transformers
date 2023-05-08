@@ -476,8 +476,8 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
 
         text, kwargs = self.prepare_for_tokenization(text, **kwargs)
 
-        if kwargs:
-            logger.warning(f"Keyword arguments {kwargs} not recognized.")
+        #if kwargs:
+        #    logger.warning(f"Keyword arguments {kwargs} not recognized.") # Muudetud
 
         # TODO: should this be in the base class?
         if hasattr(self, "do_lower_case") and self.do_lower_case:
@@ -519,7 +519,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             if token in no_split_token:
                 tokenized_text.append(token)
             else:
-                tokenized_text.extend(self._tokenize(token))
+                tokenized_text.extend(self._tokenize(token, **kwargs)) # Muudetud
         # ["This", " is", " something", "<special_token_1>", "else"]
         return tokenized_text
 
@@ -575,6 +575,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -634,6 +635,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             prepend_batch_axis=True,
             return_attention_mask=return_attention_mask,
             return_token_type_ids=return_token_type_ids,
+            return_binary_channels=return_binary_channels,  # Lisatud
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
             return_length=return_length,
@@ -659,6 +661,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[Union[str, TensorType]] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -716,6 +719,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             pad_to_multiple_of=pad_to_multiple_of,
             return_attention_mask=return_attention_mask,
             return_token_type_ids=return_token_type_ids,
+            return_binary_channels=return_binary_channels,  # Lisatud
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
             return_length=return_length,
@@ -737,6 +741,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         pad_to_multiple_of: Optional[int] = None,
         return_tensors: Optional[str] = None,
         return_token_type_ids: Optional[bool] = None,
+        return_binary_channels: Optional[bool] = None,  # Lisatud
         return_attention_mask: Optional[bool] = None,
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
@@ -764,6 +769,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 pad_to_multiple_of=None,  # we pad in batch afterward
                 return_attention_mask=False,  # we pad in batch afterward
                 return_token_type_ids=return_token_type_ids,
+                return_binary_channels = return_binary_channels, # Lisatud
                 return_overflowing_tokens=return_overflowing_tokens,
                 return_special_tokens_mask=return_special_tokens_mask,
                 return_length=return_length,

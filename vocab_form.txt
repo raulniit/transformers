@@ -2,7 +2,8 @@
 [UNK]
 [CLS]
 [SEP]
-[MASK]
+ˇMASKˇ
+
 ?
 ab
 abl
@@ -108,4 +109,3 @@ tuvat
 v
 vad
 vat
- 

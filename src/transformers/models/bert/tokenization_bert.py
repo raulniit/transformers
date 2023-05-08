@@ -263,42 +263,51 @@ class BertTokenizer(PreTrainedTokenizer):
     def _tokenize(self, text, **kwargs):
         """
         Tokeniseerib lause iga sõna lemmaks ja vormiks, st. sõna -> (lemma, vorm)
-        Implementatsioon eeldab, et special tokenid on kujul [MASK], [CLS] jne.
         """
-        special_tokens = [special.strip("[]") for special in list(self.all_special_tokens)]
+        estnltk_first_token = False # Lisaargument, et valiks alati 1. tokeni estnltk ühestamisest (fine-tunemise jaoks)
+        if 'estnltk_first_token' in kwargs:
+            estnltk_first_token = kwargs['estnltk_first_token']
+        vocab = self.get_vocab()
         tekst = Text(text).tag_layer("morph_analysis")
         tokens = []
-        for i, span in enumerate(tekst.morph_analysis):
-            if span["text"][
-                0] == "]":  # Kuna EstNLTK eraldab [MASK] -> "[", "MASK", "]", siis need vaja tagasi kokku panna
-                if i - 2 > 0:
-                    special = tekst.morph_analysis[i - 1]["text"][0]
-                    if special in special_tokens and tekst.morph_analysis[i - 2]["text"][0] == "[":
-                        tokens = tokens[:(len(tokens) - 2)]
-                        tokens.append(("[" + special + "]", "[" + special + "]"))
-            else:  # Kui leiti mitu lemmat ja vormi, siis tagastab juhusliku
+        for span in tekst.morph_analysis:
+            if estnltk_first_token:
+                ind = 0
+            else:
                 ind = random.randint(0, len(span["lemma"]) - 1)
-                tokens.append((span["lemma"][ind], span["form"][ind]))
+            if span["lemma"][ind] == self.mask_token:
+                tokens.append((span["lemma"][ind], span["lemma"][ind]))
+            elif span["lemma"][ind] not in vocab.keys() and len(list(filter(str.strip, span["root_tokens"][ind]))) > 1:
+                for pos, root_token in enumerate(list(filter(str.strip, span["root_tokens"][ind]))):
+                    root_tekst = Text(root_token).tag_layer("morph_analysis")
+                    if len(root_tekst.morph_analysis.lemma) > 0:
+                        if pos == 0:
+                            tokens.append((root_tekst.lemma[0][0], root_tekst.form[0][0], (1, 0, 0, 0, 0, 0, 0, 0)))
+                        elif pos == len(list(filter(str.strip, span["root_tokens"][ind]))) - 1:
+                            tokens.append((root_tekst.lemma[0][0], root_tekst.form[0][0], (0, 0, 1, 0, 0, 0, 0, 0)))
+                        else:
+                            tokens.append((root_tekst.lemma[0][0], root_tekst.form[0][0], (0, 1, 0, 0, 0, 0, 0, 0)))
+            else:
+                tokens.append((span["lemma"][ind], span["form"][ind], (0, 0, 0, 0, 0, 0, 0, 0)))
 
         return tokens
 
     # Muudetud
     def _convert_token_to_id(self, token):
         """Converts a token (str) in an id using the vocab."""
-        # Kui vocab_form on olemas, siis loeb vormi ID sealt, vastasel juhul loeb vormi ID tavalisest (lemma) vocab failist
-        if self.vocab_form is not None:
-            if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
-                return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab_form.get(token, self.vocab_form.get(self.unk_token)))
-            return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab_form.get(token[1], self.vocab_form.get(self.unk_token)))
+
+        if isinstance(token, str):
+            return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab_form.get(token, self.vocab_form.get(self.unk_token)))
         else:
-            if token in [self.unk_token, self.sep_token, self.pad_token, self.cls_token, self.mask_token]:
-                return (self.vocab.get(token, self.vocab.get(self.unk_token)), self.vocab.get(token, self.vocab.get(self.unk_token)))
-            return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab.get(token[1], self.vocab.get(self.unk_token)))
+            return (self.vocab.get(token[0], self.vocab.get(self.unk_token)), self.vocab_form.get(token[1], self.vocab_form.get(self.unk_token)),
+                    (token[2][0], token[2][1], token[2][2], token[2][3], token[2][4], token[2][5], token[2][6], token[2][7]))
 
     # Muudetud
     def _convert_id_to_token(self, index):
         """Converts an index (integer) in a token (str) using the vocab."""
-        return (self.ids_to_tokens.get(index, self.unk_token), self.ids_to_tokens_form.get(index, self.unk_token))
+        if isinstance(index, int):
+            return (self.ids_to_tokens.get(index, self.unk_token))
+        return (self.ids_to_tokens.get(index[0], self.unk_token), self.ids_to_tokens_form.get(index[1], self.unk_token))
 
     def convert_tokens_to_string(self, tokens):
         """Converts a sequence of tokens (string) in a single string."""
@@ -386,6 +395,18 @@ class BertTokenizer(PreTrainedTokenizer):
         if token_ids_1 is None:
             return len(cls + token_ids_0 + sep) * [0]
         return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
+
+    def create_binary_channels( # Lisatud
+        self, ids_binary_0, ids_binary_1 = None
+    ) -> List[List[int]]:
+        """
+        Binary kanalite loomine
+        """
+        sep = [self.sep_token_id]
+        cls = [self.cls_token_id]
+        if ids_binary_1 is None:
+            return [(0,0,0,0,0,0,0,0)] + ids_binary_0 + [(0,0,0,0,0,0,0,0)]
+        return [(0,0,0,0,0,0,0,0)] + ids_binary_0 + [(0,0,0,0,0,0,0,0)] + ids_binary_1 + [(0,0,0,0,0,0,0,0)]
 
     def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> Tuple[str]:
         index = 0

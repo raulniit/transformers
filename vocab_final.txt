@@ -2,7 +2,7 @@
 [UNK]
 [CLS]
 [SEP]
-[MASK]
+ˇMASKˇ
 ,
 .
 olema

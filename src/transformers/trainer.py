@@ -840,6 +840,7 @@ class Trainer:
         if self.train_dataset is None:
             raise ValueError("Trainer: training requires a train_dataset.")
 
+
         train_dataset = self.train_dataset
         data_collator = self.data_collator
         if is_datasets_available() and isinstance(train_dataset, datasets.Dataset):
@@ -2500,6 +2501,7 @@ class Trainer:
         model.train()
         inputs = self._prepare_inputs(inputs)
 
+
         if is_sagemaker_mp_enabled():
             loss_mb = smp_forward_backward(model, inputs, self.args.gradient_accumulation_steps)
             return loss_mb.reduce_mean().detach().to(self.args.device)
@@ -2961,7 +2963,9 @@ class Trainer:
 
         observed_num_examples = 0
         # Main evaluation loop
+        from datetime import datetime
         for step, inputs in enumerate(dataloader):
+
             # Update the observed num examples
             observed_batch_size = find_batch_size(inputs)
             if observed_batch_size is not None:
