@@ -3,7 +3,7 @@ Töö autor on Raul Niit ning juhendajad Sven Laur ning Hendrik Šuvalov. <br>
 
 Töö eesmärk oli uurida võimalusi BERT mudelile morfoloogilise info lisamiseks. <br>
 See tähendab, et BERT mudeli sõnede asemel kasutatakse mudelis iga sõne lemmat ehk algvormi ning vormi ehk sõne käänet või pööret. <br>
-Muudatuste implementeerimiseks tehti "fork" HuggingFace Transformers Pythoni paketi GitHubi repositooriumist.
+Muudatuste implementeerimiseks tehti koopia HuggingFace Transformers Pythoni paketi GitHubi repositooriumist.
 
 Olulisemad osad repositooriumis:
 
